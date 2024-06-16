@@ -74,6 +74,7 @@ userSchema.pre('save', function (next) {
     try {
         const { years, months } = getTenurity(this.hireDate);
         this.tenurity = { years, months };
+        next();
     } catch(err) {
         next(err);
     }
