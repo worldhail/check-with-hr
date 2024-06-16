@@ -21,35 +21,45 @@ const userKeys = [
 
 //SIGN UP
 router.post('/', async (req, res) => {
-    const email = await User.findOne({ email: req.body.email });
-    const employeeID = await User.findOne({ employeeID: req.body.employeeID });
-    
-    if (email) res.status(400).send(`Email is already registered.`);
-    if (employeeID) res.status(400).send(`EmployeeID is already registered.`);
+    try {
+        const userExist = await User.findOne({
+            $or: [
+                { email: req.body.email }, 
+                { employeeID: req.body.employeeID }
+            ]});
 
-    const { error } = validateUser(req.body);
-    if (error) {
-        const details = error.details;
-        const message = details.map( err => err.message );
-        return res.status(400).send(message);
+        if (userExist) {
+            if (userExist.email === req.body.email) return res.status(400).send(`Email is already registered.`);
+            if (userExist.employeeID === req.body.employeeID) return res.status(400).send(`EmployeeID is already registered.`);
+        }
+
+        const { error } = validateUser(req.body);
+        if (error) {
+            const details = error.details;
+            const message = details.map( err => err.message );
+            return res.status(400).send(message);
+        }
+
+        let user = new User(_pick(req.body, [...userKeys, 'email', 'password']));
+        const salt = await bcrypt.genSalt(parseInt(process.env.SALT_ROUNDS, 10));
+        user.password = await bcrypt.hash(user.password, salt);
+        user = await user.save()
+        
+        const token = user.generateAuthToken();
+        res.status(201).header('x-auth-token', token).send(_pick(user, [...userKeys, '_id']));
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
     }
-
-    let user = new User(_pick(req.body, [...userKeys, 'email', 'password']));
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(user.password, salt);
-    user = await user.save()
-    
-    const token = user.generateAuthToken();
-    res.header('x-auth-token', token).send(_pick(user, [...userKeys, '_id']));
 });
 
-//GET
+//GET user's information
 router.get('/', auth, async (req, res) => {
     const profile = await User.findById(req.user._id).select('-_id -password -date');
     res.send(profile);
 });
 
-//MODIFICATIONS - VIEW/MODIFY ACOUNT
+//PUT - VIEW/MODIFY ACOUNT
 router.put('/account', auth, async (req, res) => {
     const { error } = validateUserAccount(req.body);
     if (error) {
@@ -63,7 +73,7 @@ router.put('/account', auth, async (req, res) => {
     const authorizeUser = await User.findOne({ _id: req.user._id });
     if (existingUser && authorizeUser.email !== existingUser.email) res.status(400).send(`Email is already registered.`);
 
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(parseInt(process.env.SALT_ROUNDS, 10));
     const hash = await bcrypt.hash(password, salt);
     password = hash;
     
