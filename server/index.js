@@ -9,9 +9,18 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/users', user);
 app.use('/api/auth', auth);
 
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('Connected with MongoDB...'))
-    .catch((error) => console.error('Could not connect to MongoDB...', error));
+async function connecToDB() {
+    try {
+        await mongoose.connect(process.env.MONGODB_URI);
+        console.log('Connected with MongoDB...');
+    } catch (error) {
+        console.error('Could not connect to MongoDB...', error);
+    }
+}
+
+if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'development') {
+    connecToDB();
+}
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => { console.log(`Listening on port ${PORT}`) });
