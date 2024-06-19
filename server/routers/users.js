@@ -20,7 +20,7 @@ const userKeys = [
 ];
 
 //SIGN UP
-router.post('/', async (req, res) => {
+router.post('/sign-up', async (req, res) => {
     try {
         const userExist = await User.findOne({
             $or: [
@@ -46,7 +46,16 @@ router.post('/', async (req, res) => {
         user = await user.save()
         
         const token = user.generateAuthToken();
-        res.status(201).header('x-auth-token', token).send(_pick(user, [...userKeys, '_id']));
+
+        res.status(201).cookie('x-auth-token', token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'lax',
+            maxAge: 3600000
+        });
+        
+        res.send(_pick(user, [...userKeys, '_id']));
+        
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');

@@ -3,6 +3,7 @@ const path = require('path');
 const envFile = path.join(__dirname, `../.env.${process.env.NODE_ENV}`);
 require('dotenv').config({ path: envFile });
 const express = require('express');
+const cookieParser = require('cookie-parser');
 const app = express();
 const mongoose = require('mongoose');
 const user = require('./routers/users');
@@ -10,6 +11,7 @@ const { auth } = require('./routers/auth');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use('/api/users', user);
 app.use('/api/auth', auth);
 
