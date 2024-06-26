@@ -38,7 +38,7 @@ function validateUser (user) {
         firstName: Joi.string().min(2).max(55).required(),
         lastName: Joi.string().min(2).max(55).required(),
         email: Joi.string().min(5).max(55).required().email(),
-        password: Joi.string().min(5).max(255).required(),
+        password: Joi.string().min(8).max(255).alphanum().required(),
         department: Joi.string().min(5).max(55).required(),
         position: Joi.string().min(2).max(55).required(),
         hireDate: Joi.date().iso().required(),

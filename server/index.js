@@ -6,14 +6,17 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const app = express();
 const mongoose = require('mongoose');
-const user = require('./routers/users');
-const { auth } = require('./routers/auth');
+const user = require('./protected-routers/users');
+const { login } = require('./public-routers/login');
+const signUp = require('./public-routers/sign-up');
+const authToken = require('./middleware/auth');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use('/api/users', user);
-app.use('/api/auth', auth);
+app.use('/api/user', authToken, user);
+app.use('/api/users', login);
+app.use('/api/users', signUp);
 
 (async function connecToDB() {
     try {
@@ -25,7 +28,7 @@ app.use('/api/auth', auth);
 })();
 
 app.use((err, req, res, next) => {
-    console.error(err.message);
+    console.error(err.stack);
     res.status(500).send('Server Error');
 });
 
