@@ -1,10 +1,10 @@
 const Joi = require('joi');
-const { validateUserAccount } = require('../public-routers/login');
 const express = require('express');
 const router = express.Router();
 const { User, getTenurity } = require('../models/user');
 const _pick = require('lodash.pick');
 const bcrypt = require('bcrypt');
+const debugUser = require('debug')('app:user');
 
 //USER PROPERTIES
 const userKeys = [
@@ -34,7 +34,7 @@ router.get('/profile', async (req, res, next) => {
 });
 
 //PUT - VIEW/MODIFY ACOUNT
-router.put('/update-email', async (req, res, next) => {
+router.put('/email', async (req, res, next) => {
     function validateEmail(email) {
         const emailSchema = Joi.object({
             newEmail: Joi.string().min(5).max(55).email().unique().required()
@@ -52,20 +52,20 @@ router.put('/update-email', async (req, res, next) => {
         const authorizeUser = await User.findOne({ _id: req.user._id });
         if (existingUser.email && authorizeUser.email !== existingUser.email) return res.status(400).send(`Email is already registered.`);
         const updatedEmail = await User.updateOne({ _id: req.user._id }, { $set: { email }});
-        console.log(updatedEmail);
+        debugUser('%o', updatedEmail);
         res.send('Email succesfully updated');
     } catch (error) {
         next(error);
     }
 });
 
-router.put('/update-password', async (req, res, next) => {
+router.put('/password', async (req, res, next) => {
     function validatePassword (password) {
         const passwordSchema = Joi.object({
             currentPassword: Joi.string().min(8).max(255).alphanum().required(),
             newPassword: Joi.string().min(8).max(255).alphanum().required(),
             confirmNewPassword: Joi.string().min(8).max(255).alphanum().required()
-        })
+        });
 
         const result = passwordSchema.validate(password);
         return result;
@@ -86,7 +86,7 @@ router.put('/update-password', async (req, res, next) => {
         const hash = await bcrypt.hash(req.body.newPassword, salt);
         const newPassword = hash;
         const updatePassword = await User.updateOne({ _id: req.user._id }, { $set: { password: newPassword }});
-        console.log(updatePassword)
+        debugUser('%o', updatePassword);
         res.clearCookie('x-auth-token');
         res.send('Password successfully updated');
     } catch (error) {
@@ -111,7 +111,7 @@ router.put('/info', async (req, res, next) => {
         const date = new Date(req.body.hireDate);
         await User.updateOne({ _id: req.user._id }, { $set: { tenurity: getTenurity(date) }})
         const updateUser = await User.updateOne({ _id: req.user._id }, _pick(req.body, userKeys));
-        console.log(updateUser);
+        debugUser(updateUser);
         res.send('Information successfully updated');
     } catch (error) {
         next(error);
@@ -146,7 +146,7 @@ router.delete('/account', async (req, res, next) => {
     try {
         const deleteMyAccount = await User.deleteOne({ _id: req.user._id });
         res.clearCookie('x-auth-token');
-        console.log(deleteMyAccount);
+        debugUser(deleteMyAccount);
         res.send('Account successfully deleted');
     } catch (error) {
         next(error);

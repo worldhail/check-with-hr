@@ -11,14 +11,21 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.7.2",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "google-auth-library": "^9.11.0",
+    "googleapis": "^140.0.1",
     "joi": "^17.13.0",
     "jsonwebtoken": "^9.0.2",
     "lodash.pick": "^3.1.0",
     "mongodb": "^6.5.0",
-    "mongoose": "^8.3.3"
+    "mongoose": "^8.3.3",
+    "nodemailer": "^6.9.14"
+  },
+  "devDependencies": {
+    "debug": "^4.3.5"
   }
 }

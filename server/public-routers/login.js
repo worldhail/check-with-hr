@@ -3,6 +3,7 @@ const router = express.Router();
 const Joi = require('joi');
 const { User } = require('../models/user');
 const bcrypt = require('bcrypt');
+const debugUser = require('debug')('app:user');
 
 router.post('/login', async (req, res, next) => {
     const { error } = validateUser(req.body);
@@ -24,7 +25,8 @@ router.post('/login', async (req, res, next) => {
             maxAge: 3600000
         });
 
-        res.send('Login successful');
+        debugUser('Login successfully');
+        res.redirect('/api/user/profile');
     } catch (error) {
         next(error);
     }
