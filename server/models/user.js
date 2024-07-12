@@ -1,7 +1,9 @@
+// NPM PACKAGES
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const Joi = require('joi');
 
+// USER SCHEMA - FORMAT OF THE USER INPUT
 const userSchema = new mongoose.Schema({
     employeeID: { type: String, required: true, unique: true },
     firstName: { type: String, trim: true, required: true },
@@ -25,13 +27,13 @@ const userSchema = new mongoose.Schema({
     employmentStatus: { type: String, trim: true, required: true },
     date: { type: Date, default: Date.now }
 });
-
+// SCHEMA METHODS
 userSchema.methods.generateAuthToken = function () {
     const token = jwt.sign({ _id: this._id }, process.env.JWT_PRIVATE_KEY);
     return token;
 };
 
-//JOI SCHEMA VALIDATOR
+// JOI SCHEMA VALIDATOR
 function validateUser (user) {
     const user_Schema = Joi.object({
         employeeID: Joi.string().alphanum().min(5).max(55).required(),
@@ -56,7 +58,7 @@ function validateUser (user) {
     return result;
 };
 
-//CALCULATE THE HIRE DATE INTO THE NUMBER OF MONTHS, AND YEARS
+// CALCULATE THE HIRE DATE INTO THE NUMBER OF MONTHS, AND YEARS
 function getTenurity (date) {
     const currentDate = new Date();
 
@@ -69,6 +71,7 @@ function getTenurity (date) {
     return { years, months };
 }
 
+// BEFORE SAVING THE USER INFO, TENURITY WILL BE CALCULATED AND STORED AS AN OBJECT
 userSchema.pre('save', function (next) {
     try {
         const { years, months } = getTenurity(this.hireDate);
@@ -78,8 +81,6 @@ userSchema.pre('save', function (next) {
         next(err);
     }
 });
-
-
 
 //DEFINING USER MODEL
 const User = mongoose.model('User', userSchema);

@@ -1,14 +1,17 @@
+// NPM PACKAGES
 const express = require('express');
 const router = express.Router();
 const { google } = require('googleapis');
 const nodeMailer = require('nodemailer');
-const debugMail = require('debug')('app:mail');
-const Token = require('../models/googleToken');
 const axios = require('axios');
-const auth = require('../middleware/auth');
+const debugMail = require('debug')('app:mail');
 
-let newUser = {};
-const oAuth2Client = new google.auth.OAuth2(
+// CUSTOM MODULES/MIDDLEWARES
+const Token = require('../models/googleToken');
+
+// GLOBAL VARIABLES
+let newUser = {}; // store user email and which endpoint it's coming from
+const oAuth2Client = new google.auth.OAuth2( // define OAuth2 requirements a generate an auth URL
     process.env.CLIENT_ID,
     process.env.CLIENT_SECRET,
     process.env.REDIRECT_URI
@@ -28,11 +31,11 @@ router.get('/google/auth', (req, res, next) => {
     res.redirect(authUrl);
 });
 
-// Google redirects to the redirect URI with an authorization code
+// GOOGLE REDIRECTS TO THE REDIRECT URI WITH AN AUTHORIZTION CODE
 router.get('/user/oauth2callback', async (req, res, next) => {
     try {
         let saveToken = await Token.findOne();
-        if (!saveToken) {   // if no value, exchange authorization code for access and refresh tokens
+        if (!saveToken) {   // if no save token, exchange authorization code for access and refresh tokens
             const { code } = req.query;
             const { tokens } = await oAuth2Client.getToken(code);
             oAuth2Client.setCredentials(tokens);
@@ -41,12 +44,14 @@ router.get('/user/oauth2callback', async (req, res, next) => {
             await obtainedToken.save();
         };
 
+        // if there's save token, set the oAuth2Client credentials with the refresh token
         if (saveToken) oAuth2Client.setCredentials({ refresh_token: saveToken.refreshToken});
         const token = await oAuth2Client.getAccessToken();
 
+        // send email verification to the new user if the request is valid
         if (!newUser.fromMethod === 'POST' && !newUser.fromUrl === '/api/users/sign-up') return res.status(400).send('Invalid request');
         sendVerificationEmail(newUser.email, token);
-        res.send('Authentication successful! You can close this window.');
+        res.send('Awesome! Please check your email and verify to complete your account.');
     } catch (error) {
         next(error);
     }
@@ -78,6 +83,7 @@ router.get('/user/oauth2callback', async (req, res, next) => {
 //     }
 // });
 
+// SEND VERIFICATION EMAIL
 async function sendVerificationEmail(recipientEmail, token) {
     try {
         // const token = await oAuth2Client.getAccessToken();

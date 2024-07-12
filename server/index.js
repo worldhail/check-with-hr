@@ -1,3 +1,4 @@
+// NPM PACKAGES
 const path = require('path');
 require('dotenv').config();
 const envFile = path.join(__dirname, `../.env.${process.env.NODE_ENV}`);
@@ -7,12 +8,14 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const app = express();
 const mongoose = require('mongoose');
+const debug = require('debug')('app:error');
+
+// CUSTOM MODULES/MIDDLEWARES
 const user = require('./protected-routers/users');
 const auth = require('./middleware/auth');
 const { login } = require('./public-routers/login');
 const signUp = require('./public-routers/sign-up');
 const sendMail = require('./services/sendMail');
-const debug = require('debug')('app:error');
 
 // MIDDLEWARES
 app.use(session({

@@ -1,3 +1,4 @@
+// NPM PACKAGES
 const express = require('express');
 const router = express.Router();
 const { User, validateUser } = require('../models/user');
@@ -17,7 +18,9 @@ const userKeys = [
     'employmentStatus'
 ];
 
+// POST - USER SIGN-UP
 router.post('/sign-up', async (req, res, next) => {
+    // if user not exists, create a new user
     try {
         const userExist = await User.findOne({
             $or: [
@@ -30,6 +33,7 @@ router.post('/sign-up', async (req, res, next) => {
             if (userExist.employeeID === req.body.employeeID) return res.status(400).send(`EmployeeID is already registered.`);
         }
 
+        // validate required user input
         const { error } = validateUser(req.body);
         if (error) {
             const details = error.details;
@@ -37,28 +41,28 @@ router.post('/sign-up', async (req, res, next) => {
             return res.status(400).send(message);
         }
 
+        // hash password, and save user information to the datebase
         let user = new User(_pick(req.body, [...userKeys, 'email', 'password']));
         const salt = await bcrypt.genSalt(parseInt(process.env.SALT_ROUNDS, 10));
         user.password = await bcrypt.hash(user.password, salt);
-        // user = await user.save()
+        user = await user.save()
 
-        // CREATE A TOKEN FOR NEW USER
-        // const token = user.generateAuthToken();
-        // res.cookie('x-auth-token', token, {
-        //     httpOnly: true,
-        //     secure: false,
-        //     sameSite: 'lax',
-        //     maxAge: 3600000
-        // });
+        // create a token for the user to authenticate access to the application
+        const token = user.generateAuthToken();
+        res.cookie('x-auth-token', token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'lax',
+            maxAge: 3600000
+        });
        
-        // STORE USER EMAIL AND WHICH ENDPOINT IT'S COMING FROM
+        // store user email and which endpoint it's coming from
         req.session.email = req.body.email;
         req.session.fromMethod = req.method;
         req.session.fromUrl = req.originalUrl
   
         res.redirect('/api/verify/google/auth');
         // res.status(201).send(_pick(user, [...userKeys, '_id']));
-        
     } catch (error) {
         next(error);
     }

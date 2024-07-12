@@ -1,10 +1,13 @@
+// NPM PACKAGES
 const Joi = require('joi');
 const express = require('express');
 const router = express.Router();
-const { User, getTenurity } = require('../models/user');
 const _pick = require('lodash.pick');
 const bcrypt = require('bcrypt');
 const debugUser = require('debug')('app:user');
+
+// CUSTOMER MODULES/MIDDLEWARES
+const { User, getTenurity } = require('../models/user');
 
 //USER PROPERTIES
 const userKeys = [
@@ -18,7 +21,7 @@ const userKeys = [
     'employmentStatus'
 ];
 
-//GET user's information
+//GET - USERS INFORMATION
 router.get('/profile', async (req, res, next) => {
     try {
         const profile = await User.findById(req.user._id).select('-_id -password -date');
@@ -33,8 +36,9 @@ router.get('/profile', async (req, res, next) => {
     }
 });
 
-//PUT - VIEW/MODIFY ACOUNT
+//PUT - CHANGE EMAIL ADDRESS
 router.put('/email', async (req, res, next) => {
+    // email schema - validate the email format
     function validateEmail(email) {
         const emailSchema = Joi.object({
             newEmail: Joi.string().min(5).max(55).email().unique().required()
@@ -44,9 +48,11 @@ router.put('/email', async (req, res, next) => {
         return result;
     };
 
+    // validate the new email from the request body
     const { error } = validateEmail(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
+    // if email not exist, update email
     try {
         const existingUser = await User.findOne({ email });
         const authorizeUser = await User.findOne({ _id: req.user._id });
@@ -59,7 +65,9 @@ router.put('/email', async (req, res, next) => {
     }
 });
 
+// PUT - CHANGE PASSWORD
 router.put('/password', async (req, res, next) => {
+    // password schema - validate the password format
     function validatePassword (password) {
         const passwordSchema = Joi.object({
             currentPassword: Joi.string().min(8).max(255).alphanum().required(),
@@ -71,9 +79,11 @@ router.put('/password', async (req, res, next) => {
         return result;
     }
 
+    // validate the required password from the request body
     const { error } = validatePassword(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
+    // update new password
     try {
         const user = await User.findById(req.user._id);
         const currentPassword = await bcrypt.compare(req.body.currentPassword, user.password);
@@ -82,6 +92,7 @@ router.put('/password', async (req, res, next) => {
         if (req.body.currentPassword === req.body.newPassword) return res.status(400).send('New password must not be the same as the current password');
         if (req.body.newPassword !== req.body.confirmNewPassword) return res.status(400).send('Confirmed password does not match');
         
+        // hash new password and remove old token to cut off access
         const salt = await bcrypt.genSalt(parseInt(process.env.SALT_ROUNDS, 10));
         const hash = await bcrypt.hash(req.body.newPassword, salt);
         const newPassword = hash;
@@ -94,8 +105,9 @@ router.put('/password', async (req, res, next) => {
     }
 });
 
-//MODIFICATIONS - UPDATE OTHER INFO
+// MODIFICATIONS - UPDATE OTHER INFO
 router.put('/info', async (req, res, next) => {
+    // validate required user info from the request body
     const { error } = validateOtherInfo(req.body);
     if (error) {
         const details = error.details;
@@ -103,6 +115,7 @@ router.put('/info', async (req, res, next) => {
         return res.status(400).send(message);
     };
 
+    // update user info
     try {
         const existingUser = await User.findOne({ employeeID: req.body.employeeID });
         const authorizeUser = await User.findOne({ _id: req.user._id });
@@ -118,7 +131,7 @@ router.put('/info', async (req, res, next) => {
     }
 });
  
-//VALIDATOR FOR USER INFO MODIFICATION
+// VALIDATOR FOR USER INFO MODIFICATION
 function validateOtherInfo (userInfo) {
     const userSchema = Joi.object({
         employeeID: Joi.string().alphanum().min(5).max(55).required(),
@@ -141,7 +154,7 @@ function validateOtherInfo (userInfo) {
     return result;
 };
 
-//DELETE REQUEST
+//DELETE - USER ACCOUNT
 router.delete('/account', async (req, res, next) => {
     try {
         const deleteMyAccount = await User.deleteOne({ _id: req.user._id });
