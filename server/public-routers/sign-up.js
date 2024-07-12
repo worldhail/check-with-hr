@@ -3,7 +3,6 @@ const router = express.Router();
 const { User, validateUser } = require('../models/user');
 const _pick = require('lodash.pick');
 const bcrypt = require('bcrypt');
-const { oAuth2GrantAccess } = require('../services/sendMail');
 const debugMail = require('debug')('app:mail');
 
 //USER PROPERTIES
@@ -42,20 +41,22 @@ router.post('/sign-up', async (req, res, next) => {
         const salt = await bcrypt.genSalt(parseInt(process.env.SALT_ROUNDS, 10));
         user.password = await bcrypt.hash(user.password, salt);
         // user = await user.save()
-        
-        // const token = user.generateAuthToken();
-        
-        
-        debugMail('authUrl: ', oAuth2GrantAccess);
-        res.redirect(oAuth2GrantAccess);
 
+        // CREATE A TOKEN FOR NEW USER
+        // const token = user.generateAuthToken();
         // res.cookie('x-auth-token', token, {
         //     httpOnly: true,
         //     secure: false,
         //     sameSite: 'lax',
         //     maxAge: 3600000
         // });
-        
+       
+        // STORE USER EMAIL AND WHICH ENDPOINT IT'S COMING FROM
+        req.session.email = req.body.email;
+        req.session.fromMethod = req.method;
+        req.session.fromUrl = req.originalUrl
+  
+        res.redirect('/api/verify/google/auth');
         // res.status(201).send(_pick(user, [...userKeys, '_id']));
         
     } catch (error) {

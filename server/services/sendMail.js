@@ -5,26 +5,34 @@ const nodeMailer = require('nodemailer');
 const debugMail = require('debug')('app:mail');
 const Token = require('../models/googleToken');
 const axios = require('axios');
+const auth = require('../middleware/auth');
 
-// GRANT ACCESSS TO OAUTH2 CLIENT
+let newUser = {};
 const oAuth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
     process.env.CLIENT_SECRET,
     process.env.REDIRECT_URI
-);   
+);  
 
-const authUrl = oAuth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: ['https://www.googleapis.com/auth/gmail.send']
-    // scope: ['https://mail.google.com/'],
-    // prompt: 'consent'
+// GRANT ACCESSS TO OAUTH2 CLIENT
+router.get('/google/auth', (req, res, next) => {
+    const authUrl = oAuth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: ['https://www.googleapis.com/auth/gmail.send']
+        // scope: ['https://mail.google.com/'],
+        // prompt: 'consent'
+    });
+
+    newUser = req.session;
+    debugMail(authUrl);
+    res.redirect(authUrl);
 });
 
 // Google redirects to the redirect URI with an authorization code
 router.get('/user/oauth2callback', async (req, res, next) => {
     try {
-        let token = await Token.findOne();
-        if (!token) {   // if no value, exchange authorization code for access and refresh tokens
+        let saveToken = await Token.findOne();
+        if (!saveToken) {   // if no value, exchange authorization code for access and refresh tokens
             const { code } = req.query;
             const { tokens } = await oAuth2Client.getToken(code);
             oAuth2Client.setCredentials(tokens);
@@ -33,10 +41,11 @@ router.get('/user/oauth2callback', async (req, res, next) => {
             await obtainedToken.save();
         };
 
-        if (token) oAuth2Client.setCredentials({ refresh_token: token.refreshToken});
-        // const test = await oAuth2Client.getAccessToken();
+        if (saveToken) oAuth2Client.setCredentials({ refresh_token: saveToken.refreshToken});
+        const token = await oAuth2Client.getAccessToken();
 
-        sendVerificationEmail('worldhail41@gmail.com');
+        if (!newUser.fromMethod === 'POST' && !newUser.fromUrl === '/api/users/sign-up') return res.status(400).send('Invalid request');
+        sendVerificationEmail(newUser.email, token);
         res.send('Authentication successful! You can close this window.');
     } catch (error) {
         next(error);
@@ -69,13 +78,14 @@ router.get('/user/oauth2callback', async (req, res, next) => {
 //     }
 // });
 
-async function sendVerificationEmail(recipientEmail) {
+async function sendVerificationEmail(recipientEmail, token) {
     try {
-        const token = await oAuth2Client.getAccessToken();
+        // const token = await oAuth2Client.getAccessToken();
         const { refreshToken } = await Token.findOne()
         const currentDate = Date.now();
         const expiryDate = new Date(token.res.data.expiry_date);
         if (currentDate >= expiryDate) debugMail('Token expired!');
+
         const transporter = nodeMailer.createTransport({
             service: 'gmail',
             auth: {
@@ -103,7 +113,4 @@ async function sendVerificationEmail(recipientEmail) {
     }
 };
 
-module.exports = {
-    sendMail: router,
-    oAuth2GrantAccess: authUrl
-};
+module.exports = router;
