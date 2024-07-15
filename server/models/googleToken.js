@@ -5,3 +5,5 @@ const tokenSchema = new mongoose.Schema({
 })
 
 module.exports = mongoose.model('Token', tokenSchema)
+
+// NEED RESOLUTION FOR MULTIPLE REQUEST FROM THE USER

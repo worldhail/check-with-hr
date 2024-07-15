@@ -9,7 +9,7 @@ const debugUser = require('debug')('app:user');
 const { User } = require('../models/user');
 
 // POST - USER LOGIN
-router.post('/login', async (req, res, next) => {
+router.post('/user', async (req, res, next) => {
     // validate user credentials
     const { error } = validateUser(req.body);
     if (error) return res.status(400).send(error.details[0].message);
@@ -22,13 +22,12 @@ router.post('/login', async (req, res, next) => {
         const validPassword = await bcrypt.compare(req.body.password, user.password);
         if (!validPassword) return res.status(400).send('Invalid email or password');
         
-        // create a token for the user
+        // // create a token for the user
         const token = user.generateAuthToken();
         res.cookie('x-auth-token', token, {
             httpOnly: true,
             secure: false,
             sameSite: 'lax',
-            maxAge: 3600000
         });
 
         debugUser('Login successfully');

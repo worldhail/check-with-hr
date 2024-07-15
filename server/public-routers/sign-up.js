@@ -4,7 +4,7 @@ const router = express.Router();
 const { User, validateUser } = require('../models/user');
 const _pick = require('lodash.pick');
 const bcrypt = require('bcrypt');
-const debugMail = require('debug')('app:mail');
+const debugUser = require('debug')('app:user');
 
 //USER PROPERTIES
 const userKeys = [
@@ -19,7 +19,7 @@ const userKeys = [
 ];
 
 // POST - USER SIGN-UP
-router.post('/sign-up', async (req, res, next) => {
+router.post('/user', async (req, res, next) => {
     // if user not exists, create a new user
     try {
         const userExist = await User.findOne({
@@ -45,23 +45,30 @@ router.post('/sign-up', async (req, res, next) => {
         let user = new User(_pick(req.body, [...userKeys, 'email', 'password']));
         const salt = await bcrypt.genSalt(parseInt(process.env.SALT_ROUNDS, 10));
         user.password = await bcrypt.hash(user.password, salt);
-        user = await user.save()
+        user = await user.save();
+
+        const token = user.getVerificationToken();
+        user.verificationToken = token;
+        user = await user.save();
+
+       
 
         // create a token for the user to authenticate access to the application
-        const token = user.generateAuthToken();
-        res.cookie('x-auth-token', token, {
-            httpOnly: true,
-            secure: false,
-            sameSite: 'lax',
-            maxAge: 3600000
-        });
+        // const token = user.generateAuthToken();
+        // res.cookie('x-auth-token', token, {
+        //     httpOnly: true,
+        //     secure: false,
+        //     sameSite: 'lax'
+        // });
        
         // store user email and which endpoint it's coming from
         req.session.email = req.body.email;
         req.session.fromMethod = req.method;
         req.session.fromUrl = req.originalUrl
+        req.session.verificationToken = token;
   
-        res.redirect('/api/verify/google/auth');
+        debugUser('User successfully registered');
+        res.redirect('/api/new/user/google/auth');
         // res.status(201).send(_pick(user, [...userKeys, '_id']));
     } catch (error) {
         next(error);

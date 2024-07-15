@@ -54,7 +54,7 @@ router.put('/email', async (req, res, next) => {
 
     // if email not exist, update email
     try {
-        const existingUser = await User.findOne({ email });
+        const existingUser = await User.findOne({ email: req.body.newEmail });
         const authorizeUser = await User.findOne({ _id: req.user._id });
         if (existingUser.email && authorizeUser.email !== existingUser.email) return res.status(400).send(`Email is already registered.`);
         const updatedEmail = await User.updateOne({ _id: req.user._id }, { $set: { email }});
@@ -154,7 +154,19 @@ function validateOtherInfo (userInfo) {
     return result;
 };
 
-//DELETE - USER ACCOUNT
+// POST - LOGOUT
+router.post('/logout', async (req, res, next) => {
+    try {
+        res.clearCookie('x-auth-token');
+        req.session.destroy();
+        debugUser('Logout successfully');
+        res.redirect('/api/login/user');
+    } catch (error) {
+        next(error);
+    }
+});
+
+// DELETE - USER ACCOUNT
 router.delete('/account', async (req, res, next) => {
     try {
         const deleteMyAccount = await User.deleteOne({ _id: req.user._id });

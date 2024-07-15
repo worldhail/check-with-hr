@@ -10,15 +10,15 @@ const debugMail = require('debug')('app:mail');
 const Token = require('../models/googleToken');
 
 // GLOBAL VARIABLES
-let newUser = {}; // store user email and which endpoint it's coming from
+let newUser = null; // store user email and which endpoint it's coming from
 const oAuth2Client = new google.auth.OAuth2( // define OAuth2 requirements a generate an auth URL
     process.env.CLIENT_ID,
     process.env.CLIENT_SECRET,
     process.env.REDIRECT_URI
-);  
+);
 
 // GRANT ACCESSS TO OAUTH2 CLIENT
-router.get('/google/auth', (req, res, next) => {
+router.get('/user/google/auth', (req, res, next) => {
     const authUrl = oAuth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: ['https://www.googleapis.com/auth/gmail.send']
@@ -49,8 +49,9 @@ router.get('/user/oauth2callback', async (req, res, next) => {
         const token = await oAuth2Client.getAccessToken();
 
         // send email verification to the new user if the request is valid
-        if (!newUser.fromMethod === 'POST' && !newUser.fromUrl === '/api/users/sign-up') return res.status(400).send('Invalid request');
+        if (!newUser.fromMethod === 'POST' && !newUser.fromUrl === '/api/sign-up/user') return res.status(400).send('Invalid request');
         sendVerificationEmail(newUser.email, token);
+        req.session.destroy();
         res.send('Awesome! Please check your email and verify to complete your account.');
     } catch (error) {
         next(error);
@@ -109,12 +110,13 @@ async function sendVerificationEmail(recipientEmail, token) {
             to: recipientEmail,
             subject: 'Check with HR - Email Verification',
             text: 'Thank you for signing up with us.',
-            html: '<p><a href="http://localhost:20244/api/user/profile">Please verify your email address by clicking this link.</a></p>'
+            html:`<p><a href="http://localhost:20244/api/verify/user/complete?token=${newUser.verificationToken}">Please verify your email address by clicking this link.</a></p>`
         };
 
         const info = await transporter.sendMail(mailOptions);
         debugMail('Email sent: %s', info);
     } catch (error) {
+        req.session.destroy();
         debugMail('Could not send email: %s', error);
     }
 };

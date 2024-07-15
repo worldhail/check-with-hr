@@ -25,6 +25,8 @@ const userSchema = new mongoose.Schema({
         months: Number
     },
     employmentStatus: { type: String, trim: true, required: true },
+    isVerified: { type: Boolean, default: false},
+    verificationToken: { type: String },
     date: { type: Date, default: Date.now }
 });
 // SCHEMA METHODS
@@ -32,6 +34,12 @@ userSchema.methods.generateAuthToken = function () {
     const token = jwt.sign({ _id: this._id }, process.env.JWT_PRIVATE_KEY);
     return token;
 };
+userSchema.methods.getVerificationToken = function () {
+    if (this.isVerified) return res.status(400).send('Account is already verified');
+    const token = jwt.sign({ email: this.email }, process.env.JWT_PRIVATE_KEY, { expiresIn: 900000 });
+    return token;
+};
+
 
 // JOI SCHEMA VALIDATOR
 function validateUser (user) {
@@ -51,7 +59,7 @@ function validateUser (user) {
             province: Joi.string().min(3).max(55).required(),
             zipCode: Joi.string().min(2).max(55).required(),
         },
-        employmentStatus: Joi.string().min(5).max(55).required()
+        employmentStatus: Joi.string().min(5).max(55).required(),
     });
 
     const result = user_Schema.validate(user, { abortEarly: false });

@@ -16,6 +16,7 @@ const auth = require('./middleware/auth');
 const { login } = require('./public-routers/login');
 const signUp = require('./public-routers/sign-up');
 const sendMail = require('./services/sendMail');
+const verifiedEmail = require('./services/verifiedEmail');
 
 // MIDDLEWARES
 app.use(session({
@@ -27,10 +28,11 @@ app.use(session({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use('/api/sign-up', signUp);
+app.use('/api/new', sendMail);
+app.use('/api/verify', verifiedEmail);
+app.use('/api/login', login);
 app.use('/api/user', auth, user);
-app.use('/api/users', login);
-app.use('/api/users', signUp);
-app.use('/api/verify', sendMail);
 
 // CONNECT TO MONGODB
 (async function connecToDB() {
