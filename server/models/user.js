@@ -34,9 +34,8 @@ userSchema.methods.generateAuthToken = function () {
     const token = jwt.sign({ _id: this._id }, process.env.JWT_PRIVATE_KEY);
     return token;
 };
-userSchema.methods.getVerificationToken = function () {
-    if (this.isVerified) return res.status(400).send('Account is already verified');
-    const token = jwt.sign({ email: this.email }, process.env.JWT_PRIVATE_KEY, { expiresIn: 900000 });
+userSchema.methods.getVerificationToken = function (newEmail) {
+    const token = jwt.sign({ email: newEmail }, process.env.JWT_PRIVATE_KEY, { expiresIn: 900000 });
     return token;
 };
 

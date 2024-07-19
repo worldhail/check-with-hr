@@ -41,7 +41,7 @@ router.put('/email', async (req, res, next) => {
     // email schema - validate the email format
     function validateEmail(email) {
         const emailSchema = Joi.object({
-            newEmail: Joi.string().min(5).max(55).email().unique().required()
+            newEmail: Joi.string().min(5).max(55).email().required()
         });
 
         const result = emailSchema.validate(email);
@@ -52,14 +52,59 @@ router.put('/email', async (req, res, next) => {
     const { error } = validateEmail(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
-    // if email not exist, update email
     try {
+        let authorizeUser = await User.findOne({ _id: req.user._id });
+        if (authorizeUser.email === req.body.newEmail) return res.status(400).send('Please provide a new email or cancel if you do not want to change it.');
+
         const existingUser = await User.findOne({ email: req.body.newEmail });
+        if (existingUser) return res.status(400).send('Email is already registered.');
+        
+        const updatedEmail = await User.updateOne({ _id: req.user._id }, { $set: { email: req.body.newEmail }});
+        debugUser('Email updated, ', updatedEmail);
+
+        // store user email and which endpoint it's coming from
+        const token = authorizeUser.getVerificationToken(req.body.newEmail);
+        authorizeUser.verificationToken = token;
+        authorizeUser.isVerified = false;
+        authorizeUser = await authorizeUser.save();
+        
+        const newUser = {
+            verificationToken: token,
+            email: req.body.newEmail,
+            fromMethod: req.method,
+            fromUrl: req.originalUrl
+        };
+
+        req.session.newUser = newUser;
+        res.clearCookie('x-auth-token');
+        res.redirect('/api/new/email-send');
+    } catch (error) {
+        next(error);
+    }
+});
+
+// POST - ENTER PASSWORD BEFORE GRANTING REQUEST FOR EMAIL CHANGE
+router.post('/current-password', async (req, res, next) => {
+    // password schema - validate the password format
+    function validatePassword (password) {
+        const passwordSchema = Joi.object({
+            password: Joi.string().min(8).max(255).alphanum().required()
+        });
+
+        const result = passwordSchema.validate(password);
+        return result;
+    }
+    // validate the required password from the request body
+    const { error } = validatePassword(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+
+    // if password is valid get back to the email endpoint to enter new password
+    try {
         const authorizeUser = await User.findOne({ _id: req.user._id });
-        if (existingUser.email && authorizeUser.email !== existingUser.email) return res.status(400).send(`Email is already registered.`);
-        const updatedEmail = await User.updateOne({ _id: req.user._id }, { $set: { email }});
-        debugUser('%o', updatedEmail);
-        res.send('Email succesfully updated');
+        const validPassword = await bcrypt.compare(req.body.password, authorizeUser.password);
+        if (!validPassword) return res.status(400).send('Incorrect password');
+
+        res.redirect('/api/user/email');
     } catch (error) {
         next(error);
     }

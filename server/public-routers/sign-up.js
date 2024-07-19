@@ -6,6 +6,9 @@ const _pick = require('lodash.pick');
 const bcrypt = require('bcrypt');
 const debugUser = require('debug')('app:user');
 
+// CUSTOM MODULES/MIDDLEWARES
+// const { sendEmailVerification } = require('../services/sendMail');
+
 //USER PROPERTIES
 const userKeys = [
     'employeeID',
@@ -45,32 +48,26 @@ router.post('/user', async (req, res, next) => {
         let user = new User(_pick(req.body, [...userKeys, 'email', 'password']));
         const salt = await bcrypt.genSalt(parseInt(process.env.SALT_ROUNDS, 10));
         user.password = await bcrypt.hash(user.password, salt);
-        user = await user.save();
+        // user = await user.save();
 
-        const token = user.getVerificationToken();
+        const token = user.getVerificationToken(req.body.email);
         user.verificationToken = token;
         user = await user.save();
-
-       
-
-        // create a token for the user to authenticate access to the application
-        // const token = user.generateAuthToken();
-        // res.cookie('x-auth-token', token, {
-        //     httpOnly: true,
-        //     secure: false,
-        //     sameSite: 'lax'
-        // });
        
         // store user email and which endpoint it's coming from
-        req.session.email = req.body.email;
-        req.session.fromMethod = req.method;
-        req.session.fromUrl = req.originalUrl
-        req.session.verificationToken = token;
-  
+        const newUser = {
+            email: req.body.email,
+            fromMethod: req.method,
+            fromUrl: req.originalUrl,
+            verificationToken: token
+        };
+
+        req.session.newUser = newUser;
         debugUser('User successfully registered');
-        res.redirect('/api/new/user/google/auth');
+        res.redirect('/api/new/email-send');
         // res.status(201).send(_pick(user, [...userKeys, '_id']));
     } catch (error) {
+        req.session.destroy();
         next(error);
     }
 });

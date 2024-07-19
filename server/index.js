@@ -46,7 +46,7 @@ app.use('/api/user', auth, user);
 
 // ERROR HANDLING
 app.use((err, req, res, next) => {
-    debug(err.message);
+    debug(err);
     res.status(500).send('Server Error');
 });
 
