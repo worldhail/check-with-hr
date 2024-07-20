@@ -48,11 +48,9 @@ router.post('/user', async (req, res, next) => {
         let user = new User(_pick(req.body, [...userKeys, 'email', 'password']));
         const salt = await bcrypt.genSalt(parseInt(process.env.SALT_ROUNDS, 10));
         user.password = await bcrypt.hash(user.password, salt);
-        // user = await user.save();
-
         const token = user.getVerificationToken(req.body.email);
         user.verificationToken = token;
-        user = await user.save();
+        // user = await user.save();
        
         // store user email and which endpoint it's coming from
         const newUser = {
