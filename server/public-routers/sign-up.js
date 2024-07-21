@@ -50,7 +50,7 @@ router.post('/user', async (req, res, next) => {
         user.password = await bcrypt.hash(user.password, salt);
         const token = user.getVerificationToken(req.body.email);
         user.verificationToken = token;
-        // user = await user.save();
+        user = await user.save();
        
         // store user email and which endpoint it's coming from
         const newUser = {
@@ -62,6 +62,7 @@ router.post('/user', async (req, res, next) => {
 
         req.session.newUser = newUser;
         debugUser('User successfully registered');
+        debugUser('Sending email verification...')
         res.redirect('/api/new/email-send');
         // res.status(201).send(_pick(user, [...userKeys, '_id']));
     } catch (error) {

@@ -27,7 +27,7 @@ router.get('/user/google/auth', (req, res) => {
         prompt: 'consent'
     });
 
-    debugMail('Access to Google auth', authUrl);
+    debugMail('Granted access to google oAuth', authUrl);
     res.redirect(authUrl);
 });
 
@@ -46,21 +46,24 @@ router.get('/user/oauth2callback', async (req, res, next) => {
 
         // sett oAuth2Client credentials | save tokens to the DB | send email verification
         const token = response.data;
-        oAuth2Client.setCredentials(token);
-        debugMail('Setting credentials with oAuth');
+        debugMail('New token obtained');
 
         const obtainedToken = new Token(token);
         obtainedToken.expires_in = new Date(Date.now() + (token.expires_in * 1000));
         await obtainedToken.save();
         debugMail('Stored new token');
 
+        oAuth2Client.setCredentials(token);
+        debugMail('Setting credentials with oAuth');
+
         await sendEmailVerification(newUser.email, token);
         req.session.destroy();
-        debugMail('Express-session removed');
+        debugMail('Session removed');
 
         res.send('Awesome! Please check your email and verify to complete your account.');
     } catch (error) {
         req.session.destroy();
+        debugError('Session removed \nFrom redirect URI')
         next(error);
     }
 });
@@ -73,20 +76,24 @@ router.get('/email-send', async (req, res, next) => {
         if (!hasToken) res.redirect('/api/new/user/google/auth');
         else {
             // if token found on DB, send email verification
+            debugMail('Setting credentials with oAuth');
             oAuth2Client.setCredentials(hasToken);
-
+            
             // if sendEmailVerification has an error,
             // it typically has expired refresh token so we redirect to google Auth to grant new tokens
             try {
+                debugMail('Sending email verification');
                 await sendEmailVerification(newUser.email, hasToken);
             } catch (error) {
-                debugMail('sendEmailVerification has an error: ', error);
+                debugError('sendEmailVerification has an error. \nRequesting to Google oAuth ', error);
                 res.redirect('/api/new/user/google/auth');
             }
             req.session.destroy();
+            debugError('Session removed');
             res.send('Awesome! Please check your email and verify to complete your account.');
         };
     } catch (error) {
+        debugError('From sending email endpoint');
         next(error);
     }
 });
@@ -96,7 +103,7 @@ async function sendEmailVerification(recipientEmail, savedToken) {
         let token = savedToken.access_token;
         const isAccessTokenExpired = Date.now() >= savedToken.expires_in.getTime();
         if (isAccessTokenExpired) {
-            debugMail('expired')
+            debugMail('Access token expired. Getting new token')
             try {
                 const response = await axios.post('https://oauth2.googleapis.com/token', {
                     client_id: process.env.CLIENT_ID,
@@ -106,13 +113,17 @@ async function sendEmailVerification(recipientEmail, savedToken) {
                 });
     
                 let obtainedToken = response.data;
+                debugMail('New access token obtained');
+
                 obtainedToken.expires_in = new Date(Date.now() + (obtainedToken.expires_in * 1000));
                 token = obtainedToken.access_token
                 const updateToken = await Token.updateOne({}, { $set: obtainedToken });
-                debugMail('New access token obtained', updateToken);
+                debugMail('Stored new access token ', updateToken);
+
                 oAuth2Client.setCredentials(obtainedToken);
+                debugMail('Setting credentials with oAuth');
             } catch (error) {
-                debugMail(error.response.data);
+                debugError('From expired token ', error.response.data);
             }
         };
 

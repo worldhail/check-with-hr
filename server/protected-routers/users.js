@@ -75,6 +75,7 @@ router.put('/email', async (req, res, next) => {
             fromUrl: req.originalUrl
         };
 
+        debugUser('Sending email verification...')
         req.session.newUser = newUser;
         res.clearCookie('x-auth-token');
         res.redirect('/api/new/email-send');
@@ -104,6 +105,7 @@ router.post('/current-password', async (req, res, next) => {
         const validPassword = await bcrypt.compare(req.body.password, authorizeUser.password);
         if (!validPassword) return res.status(400).send('Incorrect password');
 
+        debugUser('Ready for email alteration');
         res.redirect('/api/user/email');
     } catch (error) {
         next(error);
@@ -172,7 +174,7 @@ router.put('/personal-info', async (req, res, next) => {
         const date = new Date(req.body.hireDate);
         await User.updateOne({ _id: req.user._id }, { $set: { tenurity: getTenurity(date) }})
         const updateUser = await User.updateOne({ _id: req.user._id }, _pick(req.body, userKeys));
-        debugUser(updateUser);
+        debugUser('Personal information updated ', updateUser);
         res.redirect('/api/user/profile');
     } catch (error) {
         next(error);
