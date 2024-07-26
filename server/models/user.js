@@ -27,7 +27,8 @@ const userSchema = new mongoose.Schema({
     employmentStatus: { type: String, trim: true, required: true },
     isVerified: { type: Boolean, default: false},
     verificationToken: { type: String },
-    date: { type: Date, default: Date.now }
+    date: { type: Date, default: Date.now },
+    role: { type: String, required: true, enum: [ 'admin', 'employee'] }
 });
 // SCHEMA METHODS
 userSchema.methods.generateAuthToken = function () {
@@ -59,6 +60,7 @@ function validateUser (user) {
             zipCode: Joi.string().min(2).max(55).required(),
         },
         employmentStatus: Joi.string().min(5).max(55).required(),
+        role: Joi.string().valid('admin', 'employee').required()
     });
 
     const result = user_Schema.validate(user, { abortEarly: false });

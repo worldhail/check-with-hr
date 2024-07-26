@@ -33,6 +33,7 @@ app.use('/api/new', sendMail);
 app.use('/api/verify', verifiedEmail);
 app.use('/api/login', login);
 app.use('/api/user', auth, user);
+app.use('/api/admin', auth, user);
 
 // CONNECT TO MONGODB
 (async function connecToDB() {

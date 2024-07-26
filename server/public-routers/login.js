@@ -17,6 +17,7 @@ router.post('/user', async (req, res, next) => {
     // if user exist, compare password then autheniticates
     try {
         const user = await User.findOne({ email: req.body.email });
+        if (user.role !== req.body.role) return res.status(400).send('Invalid email or password');
         if (!user) return res.status(400).send('Invalid email or password');
 
         const validPassword = await bcrypt.compare(req.body.password, user.password);
@@ -30,8 +31,9 @@ router.post('/user', async (req, res, next) => {
             sameSite: 'lax',
         });
 
-        debugUser('Login successfully');
-        res.redirect('/api/user/profile');
+        const to_roleHomePage = user.role === 'admin' ? '/api/admin/profile' : '/api/user/profile';
+        debugUser('Login successfully to', to_roleHomePage);
+        res.redirect(to_roleHomePage);
     } catch (error) {
         next(error);
     }
@@ -41,7 +43,8 @@ router.post('/user', async (req, res, next) => {
 function validateUser (user) {
     const authSchema = Joi.object({
         email: Joi.string().required().email(),
-        password: Joi.string().min(8).max(255).alphanum().required()
+        password: Joi.string().min(8).max(255).alphanum().required(),
+        role: Joi.string().valid('admin', 'employee').required()
     });
 
     const result = authSchema.validate(user, { abortEarly: false });

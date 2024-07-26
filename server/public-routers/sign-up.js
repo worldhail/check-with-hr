@@ -18,7 +18,8 @@ const userKeys = [
     'position',
     'hireDate',
     'address',
-    'employmentStatus'
+    'employmentStatus',
+    'role'
 ];
 
 // POST - USER SIGN-UP
