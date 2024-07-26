@@ -12,6 +12,7 @@ const mongoose = require('mongoose');
 const debug = require('debug')('app:error');
 
 // CUSTOM MODULES/MIDDLEWARES
+const { adminLimiter, userLimiter } = require('./services/requestLimiter');
 const user = require('./protected-routers/users');
 const auth = require('./middleware/auth');
 const { login } = require('./public-routers/login');
@@ -34,8 +35,8 @@ app.use('/api/sign-up', signUp);
 app.use('/api/new', sendMail);
 app.use('/api/verify', verifiedEmail);
 app.use('/api/login', login);
-app.use('/api/user', auth, user);
-app.use('/api/admin', auth, user);
+app.use('/api/user', userLimiter, auth, user);
+app.use('/api/admin', adminLimiter, auth, user);
 
 // CONNECT TO MONGODB
 (async function connecToDB() {

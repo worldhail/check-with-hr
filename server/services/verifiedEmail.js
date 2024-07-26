@@ -1,21 +1,14 @@
 // NPM PACKAGES
 const express = require('express');
 const router = express.Router();
-const rateLimit = require('express-rate-limit');
+const { verificationLimiter } = require('./requestLimiter');
 const debugUser = require('debug')('app:user');
 
 // CUSTOM MODULES/MIDDLEWARES
 const { User } = require('../models/user');
 
-// RATE LIMITER CONFIGURATION
-const limiter = rateLimit({
-    windowMs: 24 * 60 * 60 * 1000, // 24 hours
-    max: 10, // limit each IP to 5 requests per windowMs
-    message: 'Too many requests attempted, please try again after 24 hours'
-});
-
 // TAGGED AS VERIFIED EMAIL ADDRESS ONCE VISITED THIS ROUTE
-router.get('/user/complete', limiter, async (req, res, next) => {
+router.get('/user/complete', verificationLimiter, async (req, res, next) => {
     try {
         // check if token is present and valid
         const { token } = req.query;
