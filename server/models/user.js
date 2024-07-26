@@ -32,11 +32,11 @@ const userSchema = new mongoose.Schema({
 });
 // SCHEMA METHODS
 userSchema.methods.generateAuthToken = function () {
-    const token = jwt.sign({ _id: this._id }, process.env.JWT_PRIVATE_KEY);
+    const token = jwt.sign({ _id: this._id, role: this.role }, process.env.JWT_PRIVATE_KEY);
     return token;
 };
 userSchema.methods.getVerificationToken = function (newEmail) {
-    const token = jwt.sign({ email: newEmail }, process.env.JWT_PRIVATE_KEY, { expiresIn: 900000 });
+    const token = jwt.sign({ email: newEmail, role: this.role }, process.env.JWT_PRIVATE_KEY, { expiresIn: 900000 });
     return token;
 };
 
