@@ -7,6 +7,7 @@ const express = require('express');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const app = express();
+const helmet = require('helmet');
 const mongoose = require('mongoose');
 const debug = require('debug')('app:error');
 
@@ -19,6 +20,7 @@ const sendMail = require('./services/sendMail');
 const verifiedEmail = require('./services/verifiedEmail');
 
 // MIDDLEWARES
+app.use(helmet());
 app.use(session({
     secret: process.env.JWT_PRIVATE_KEY,
     resave: false,
