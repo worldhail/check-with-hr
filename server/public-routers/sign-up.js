@@ -12,7 +12,8 @@ const debugUser = require('debug')('app:user');
 //USER PROPERTIES
 const userKeys = [
     'employeeID',
-    'firstName', 
+    'firstName',
+    'middleName',
     'lastName',
     'department',
     'position',

@@ -7,6 +7,7 @@ const Joi = require('joi');
 const userSchema = new mongoose.Schema({
     employeeID: { type: String, required: true, unique: true },
     firstName: { type: String, trim: true, required: true },
+    middleName: { type: String, trim: true, required: true },
     lastName: { type: String, trim: true, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
@@ -46,6 +47,7 @@ function validateUser (user) {
     const user_Schema = Joi.object({
         employeeID: Joi.string().alphanum().min(5).max(55).required(),
         firstName: Joi.string().min(2).max(55).required(),
+        middleName: Joi.string().min(2).max(55).required(),
         lastName: Joi.string().min(2).max(55).required(),
         email: Joi.string().min(5).max(55).required().email(),
         password: Joi.string().min(8).max(255).alphanum().required(),

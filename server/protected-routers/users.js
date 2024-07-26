@@ -12,7 +12,8 @@ const { User, getTenurity } = require('../models/user');
 //USER PROPERTIES
 const userKeys = [
     'employeeID',
-    'firstName', 
+    'firstName',
+    'middleName',
     'lastName',
     'department',
     'position',
@@ -187,6 +188,7 @@ function validateOtherInfo (userInfo) {
     const userSchema = Joi.object({
         employeeID: Joi.string().alphanum().min(5).max(55).required(),
         firstName: Joi.string().min(2).max(55).required(),
+        middleName: Joi.string().min(2).max(55).required(),
         lastName: Joi.string().min(2).max(55).required(),
         department: Joi.string().min(5).max(55).required(),
         position: Joi.string().min(2).max(55).required(),
