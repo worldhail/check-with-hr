@@ -12,7 +12,7 @@ const mongoose = require('mongoose');
 const debug = require('debug')('app:error');
 
 // CUSTOM MODULES/MIDDLEWARES
-const { adminLimiter, userLimiter } = require('./middleware/requestLimiter');
+const { adminLimiter, userLimiter, verificationLimiter } = require('./middleware/requestLimiter');
 const authorizeRole = require('./middleware/authorizeRole');
 const user = require('./protected-user-routers/users');
 const auth = require('./middleware/auth');
@@ -36,7 +36,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use('/api/sign-up', signUp);
 app.use('/api/new', sendMail);
-app.use('/api/verify', verifiedEmail);
+app.use('/api/verify', verificationLimiter, verifiedEmail);
 app.use('/api/login', login);
 app.use('/api/user', userLimiter, auth, authorizeRole(['employee']), user);
 app.use('/api/admin', adminLimiter, auth, authorizeRole(['admin']), adminUser);

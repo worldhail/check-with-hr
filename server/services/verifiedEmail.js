@@ -1,14 +1,13 @@
 // NPM PACKAGES
 const express = require('express');
 const router = express.Router();
-const { verificationLimiter } = require('../middleware/requestLimiter');
 const debugUser = require('debug')('app:user');
 
 // CUSTOM MODULES/MIDDLEWARES
 const { User } = require('../models/user');
 
 // TAGGED AS VERIFIED EMAIL ADDRESS ONCE VISITED THIS ROUTE
-router.get('/user/complete', verificationLimiter, async (req, res, next) => {
+router.get('/user/complete', async (req, res, next) => {
     try {
         // check if token is present and valid
         const { token } = req.query;
