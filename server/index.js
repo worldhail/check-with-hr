@@ -12,16 +12,16 @@ const mongoose = require('mongoose');
 const debug = require('debug')('app:error');
 
 // CUSTOM MODULES/MIDDLEWARES
-const { adminLimiter, userLimiter } = require('./services/requestLimiter');
+const { adminLimiter, userLimiter } = require('./middleware/requestLimiter');
 const authorizeRole = require('./middleware/authorizeRole');
-const user = require('./protected-routers/users');
+const user = require('./protected-user-routers/users');
 const auth = require('./middleware/auth');
 const { login } = require('./public-routers/login');
 const signUp = require('./public-routers/sign-up');
 const sendMail = require('./services/sendMail');
 const verifiedEmail = require('./services/verifiedEmail');
-const adminUser = require('./protected-routers/adminUser');
-const adminLookUp = require('./protected-routers/adminLook-up');
+const adminUser = require('./protected-admin-routers/adminUser');
+const adminLookUp = require('./protected-admin-routers/adminLook-up');
 
 // MIDDLEWARES
 app.use(helmet());

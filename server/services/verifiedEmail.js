@@ -1,7 +1,7 @@
 // NPM PACKAGES
 const express = require('express');
 const router = express.Router();
-const { verificationLimiter } = require('./requestLimiter');
+const { verificationLimiter } = require('../middleware/requestLimiter');
 const debugUser = require('debug')('app:user');
 
 // CUSTOM MODULES/MIDDLEWARES
