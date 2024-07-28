@@ -25,6 +25,7 @@ const userKeys = [
 //GET - USERS INFORMATION
 router.get('/profile', async (req, res, next) => {
     try {
+        debugUser('Welcome to employee account');
         const profile = await User.findById(req.user._id)
             .select('-_id -password -date -role -isVerified -verificationToken -__v ');
         if (!profile) {
