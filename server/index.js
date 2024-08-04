@@ -40,6 +40,7 @@ app.use('/api/verify', verificationLimiter, verifiedEmail);
 app.use('/api/login', login);
 app.use('/api/user', userLimiter, auth, authorizeRole(['employee']), user);
 app.use('/api/admin', adminLimiter, auth, authorizeRole(['admin']), adminUser);
+app.use('/api/admin', adminLimiter, auth, authorizeRole(['admin']), adminLookUp);
 
 // CONNECT TO MONGODB
 (async function connecToDB() {
