@@ -41,7 +41,6 @@ userSchema.methods.getVerificationToken = function (newEmail) {
     return token;
 };
 
-
 // JOI SCHEMA VALIDATOR
 function validateUser (user) {
     const user_Schema = Joi.object({
@@ -93,8 +92,22 @@ userSchema.pre('save', function (next) {
     }
 });
 
+userSchema.index({
+    employeeID: 1,
+    firstName: 1,
+    middleName: 1,
+    lastName: 1,
+    email: 1,
+    department: 1,
+    position: 1,
+    hireDate: 1,
+    employmentStatus: 1 
+},
+{ collation: { locale: 'en', strength: 2 } });
+
 //DEFINING USER MODEL
 const User = mongoose.model('User', userSchema);
+User.ensureIndexes();
 
 module.exports = {
     getTenurity,
