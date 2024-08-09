@@ -2,12 +2,15 @@
 const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
+const debugAdmin = require('debug')('app:admin');
 
 // CUSTOMER MODULES/MIDDLEWARES
 const { User } = require('../models/user');
+const LeaveCredits = require('../models/leave-credits');
 
 // GET EMPLOYEE DOCUMENTS
-router.get('/user-documents', async (req, res, next) => {
+router.get('/user-docs', async (req, res, next) => {
     // validate the new input from the request body
     const { error } = userCategorySchema(req.body);
     if (error) return res.status(400).send(error.details[0].message);
@@ -37,6 +40,55 @@ router.get('/user-documents', async (req, res, next) => {
     }
 });
 
+router.post('/user-doc/credits/set/:id', async (req, res, next) => {
+    const id = req.params.id;
+
+    try {
+        const { error } = leaveCreditSchema(req.body);
+        if (error) return res.status(400).send(error.details[0].message);
+
+        const { regularizationDate, used } = req.body;
+        const leaveCredits = new LeaveCredits({ user: id, regularizationDate, used });
+        const userCredits = await LeaveCredits.findOne({ user: id });
+        if (userCredits) await LeaveCredits.deleteOne({ user: id });
+        await leaveCredits.save();
+        debugAdmin('New leave credits setup');
+        res.status(201).send(leaveCredits);
+    } catch (error) {
+        next(error)
+    }
+});
+
+router.patch('/user-doc/credits/update/:id', async (req, res, next) => {
+    const patchSchema = creditsSchema.fork(['regularizationDate'], field => field.optional());
+
+    const { error } = patchSchema.validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+
+    try {
+        const credits = await LeaveCredits.findOne({ user: req.params.id });
+        if (!credits) return res.status(400).send('No user credits found');
+
+        let numberOfDays = req.body.used;
+        if (numberOfDays > credits.available) return res.status(400).send(`Only a maximum of ${credits.available}`);
+        if (numberOfDays < 0) numberOfDays*= -1;
+        if (numberOfDays > credits.used) return res.status(400).send(`Should not be greater than the used credits`);
+        
+        const totalUsed = credits.used + req.body.used;
+        const newUsedCredits = await LeaveCredits.updateOne(
+            { user: req.params.id },    
+            { $set: {
+                    used: totalUsed,
+                    available: credits.total - totalUsed
+                }
+            });
+        debugAdmin('Used credits added', newUsedCredits);
+        res.send(newUsedCredits);
+    } catch (error) {
+        next(error);
+    }
+});
+
 // USER CATEGORY SCHEMA
 function userCategorySchema (userInfo) {
     const userDocumentSchema = Joi.object({
@@ -50,6 +102,17 @@ function userCategorySchema (userInfo) {
     });
 
     const result = userDocumentSchema.validate(userInfo);
+    return result;
+}
+
+// LEAVE CREDITS SCHEMA
+const creditsSchema = Joi.object({
+    regularizationDate: Joi.date().iso().required(),
+    used: Joi.number().optional()
+});
+
+function leaveCreditSchema(info) {
+    const result = creditsSchema.validate(info);
     return result;
 }
 
