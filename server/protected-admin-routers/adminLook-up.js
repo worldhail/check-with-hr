@@ -60,30 +60,39 @@ router.post('/user-doc/credits/set/:id', async (req, res, next) => {
 });
 
 router.patch('/user-doc/credits/update/:id', async (req, res, next) => {
-    const patchSchema = creditsSchema.fork(['regularizationDate'], field => field.optional());
-
-    const { error } = patchSchema.validate(req.body);
+    const availableSchema = Joi.object({ available: Joi.number().required() });
+    const { error } = availableSchema.validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
     try {
         const credits = await LeaveCredits.findOne({ user: req.params.id });
         if (!credits) return res.status(400).send('No user credits found');
-
-        let numberOfDays = req.body.used;
-        if (numberOfDays > credits.available) return res.status(400).send(`Only a maximum of ${credits.available}`);
-        if (numberOfDays < 0) numberOfDays*= -1;
-        if (numberOfDays > credits.used) return res.status(400).send(`Should not be greater than the used credits`);
         
-        const totalUsed = credits.used + req.body.used;
-        const newUsedCredits = await LeaveCredits.updateOne(
+        let numberOfDays = req.body.available;
+        let availableCredits = credits.available;
+        let usedCredits = credits.used;
+        if (numberOfDays > 0) {
+            if (numberOfDays > usedCredits) return res.status(400).send(`Should not be greater than the used credits`);
+
+            availableCredits += numberOfDays;
+            usedCredits -= numberOfDays;
+        } else {
+            numberOfDays *= -1;
+            if (numberOfDays > availableCredits) return res.status(400).send(`Only a maximum of ${credits.available}`);
+
+            availableCredits -= numberOfDays;
+            usedCredits += numberOfDays;
+        };
+        
+        const newCredits = await LeaveCredits.updateOne(
             { user: req.params.id },    
             { $set: {
-                    used: totalUsed,
-                    available: credits.total - totalUsed
+                    used: usedCredits,
+                    available: availableCredits
                 }
             });
-        debugAdmin('Used credits added', newUsedCredits);
-        res.send(newUsedCredits);
+        debugAdmin('Leave credits updated', newCredits);
+        res.send(newCredits);
     } catch (error) {
         next(error);
     }
