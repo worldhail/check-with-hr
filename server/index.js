@@ -22,6 +22,7 @@ const sendMail = require('./services/sendMail');
 const verifiedEmail = require('./services/verifiedEmail');
 const adminUser = require('./protected-admin-routers/adminUser');
 const adminLookUp = require('./protected-admin-routers/adminLook-up');
+const userCredits = require('./protected-user-routers/leave-credits');
 
 // MIDDLEWARES
 app.use(helmet());
@@ -39,6 +40,7 @@ app.use('/api/new', sendMail);
 app.use('/api/verify', verificationLimiter, verifiedEmail);
 app.use('/api/login', login);
 app.use('/api/user', userLimiter, auth, authorizeRole(['employee']), user);
+app.use('/api/user', userLimiter, auth, authorizeRole(['employee']), userCredits);
 app.use('/api/admin', adminLimiter, auth, authorizeRole(['admin']), adminUser);
 app.use('/api/admin', adminLimiter, auth, authorizeRole(['admin']), adminLookUp);
 
