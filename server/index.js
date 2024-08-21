@@ -23,6 +23,7 @@ const verifiedEmail = require('./services/verifiedEmail');
 const adminUser = require('./protected-admin-routers/adminUser');
 const adminLookUp = require('./protected-admin-routers/adminLook-up');
 const userCredits = require('./protected-user-routers/leave-credits');
+const payslip = require('./protected-admin-routers/payslip');
 
 // MIDDLEWARES
 app.use(helmet());
@@ -43,6 +44,8 @@ app.use('/api/user', userLimiter, auth, authorizeRole(['employee']), user);
 app.use('/api/user', userLimiter, auth, authorizeRole(['employee']), userCredits);
 app.use('/api/admin', adminLimiter, auth, authorizeRole(['admin']), adminUser);
 app.use('/api/admin', adminLimiter, auth, authorizeRole(['admin']), adminLookUp);
+app.use('/api/admin', adminLimiter, auth, authorizeRole(['admin']), payslip);
+
 
 // CONNECT TO MONGODB
 (async function connecToDB() {
