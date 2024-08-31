@@ -33,6 +33,20 @@ const contriAndDeductSchema = Joi.object({
     })
 });
 
+const allowanceSchema = Joi.object({
+    'Allowances': Joi.object({
+        'Rice Allowance': Joi.number().default(0),
+        'Laundry Allowance': Joi.number().default(0),
+        'Medical Cash Allowance': Joi.number().default(0),
+        'Uniform Allowance': Joi.number().default(0),
+        'Employee Pag-IBIG share paid by Smiles': Joi.number().default(0),
+        'Employee Philhealth share paid by Smiles': Joi.number().default(0),
+        '13th Month': Joi.number().default(0),
+        'Complexity Pay': Joi.number().default(0),
+        'Other Allowances': Joi.number().default(0)
+    })
+});
+
 const hourlyBreakdownSchema = Joi.object({
     'Hourly Breakdown': {
         'Hour Type': Joi.string(),
@@ -117,7 +131,7 @@ router.put('/payslip/earnings/:id', async (req, res, next)=> {
         // convert the dottenPairs array to an object and update the properties
         const newValues = Object.fromEntries(dottedPairs);
         const updateEarnings = await Payslip.updateOne({ user: id, 'Earnings._id': earningId }, { $set: newValues });
-        debugAdmin(updateEarnings);
+        debugAdmin('Earnings updated ', updateEarnings);
         res.send(updateEarnings);
     } catch (error) {
         next(error);
@@ -131,7 +145,7 @@ router.put('/payslip/contributions-and-deductions/:id', async (req, res, next)=>
     // validate the input object and its properties
     const { error } = schemaValidator(contriAndDeductSchema, req.body);
     if (error) return res.status(400).send(error.details.map(items => items.message));
-    
+
     try {
         const contriAndDeduct = await Payslip.findOne({ user: id }).select({ 'Contributions & Deductions': 1, _id: 0 });
         const contriAndDeductId = contriAndDeduct['Contributions & Deductions']._id;
@@ -148,8 +162,38 @@ router.put('/payslip/contributions-and-deductions/:id', async (req, res, next)=>
         // convert the dottenPairs array to an object and update the properties
         const newValues = Object.fromEntries(dottedPairs);
         const updateContriAndDeduct = await Payslip.updateOne({ user: id, 'Contributions & Deductions._id': contriAndDeductId }, { $set: newValues });
-        debugAdmin(updateContriAndDeduct);
+        debugAdmin('Contributions & Deductions updated ', updateContriAndDeduct);
         res.send(updateContriAndDeduct);
+    } catch (error) {
+        next(error);
+    }
+});
+
+// EDITTING PAYSLIP TEMPLATE FOR ALLOWANCES CATEGORY
+router.put('/payslip/allowances/:id', async (req, res, next)=> {
+    const id = req.params.id;
+    
+    // validate the input object and its properties
+    const { error } = schemaValidator(allowanceSchema, req.body);
+    if (error) return res.status(400).send(error.details.map(items => items.message));
+    
+    try {
+        const allowances = await Payslip.findOne({ user: id }).select('Allowances -_id');
+        const allowancesId = allowances['Allowances']._id;
+        if (!allowances) return res.status(400).send('Payslip not found for the user');
+
+        // add all the property values of the Earning object
+        const sum = getTotal(req.body, 'Allowances', allowances);
+
+        // set a dot notation on a string type for the key pairs and push the total property
+        const dottedPairs = makeDottedKeyPairs(req.body, 'Allowances');
+        dottedPairs.push(['Allowances.Total Allowances', sum]);
+
+        // convert the dottenPairs array to an object and update the properties
+        const newValues = Object.fromEntries(dottedPairs);
+        const updateAllowances = await Payslip.updateOne({ user: id, 'Allowances._id': allowancesId }, { $set: newValues });
+        debugAdmin('Allowances updated ', updateAllowances);
+        res.send(updateAllowances);
     } catch (error) {
         next(error);
     }
