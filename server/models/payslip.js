@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 
 // ENUM FOR HOURLY TYPE
-const hourlyType = [
+const hourType = [
     'Regular Hours',
     'Regular Overtime Hours',
     'Regular Night Shift Hours',
@@ -55,7 +55,7 @@ const allowanceSchema = new mongoose.Schema({
 });
 
 const hourlyBreakdownSchema = new mongoose.Schema({
-    'Hour Type': { type: String, enum: hourlyType },
+    'Hour Type': { type: String, enum: hourType },
     'Hours': { type: Number, default: 0 },
     'Earnings': { type: Number, default: 0 }
 }, { _id: false });
@@ -65,7 +65,7 @@ const payslipSchema = new mongoose.Schema({
     'Earnings': { type: earningsSchema, default: () => ({}) },
     'Contributions & Deductions': { type: contriAndDeductSchema, default: () => ({}) },
     'Allowances': { type: allowanceSchema, default: () => ({}) },
-    'Hourly Breakdown': { type: [ hourlyBreakdownSchema ] },
+    'Hourly Breakdown': { type: mongoose.Schema.Types.Mixed },
     'Totals': {
         'Hours': { type: Number, default: 0 },
         'Net Earnings': { type: Number, default: 0 },
@@ -77,6 +77,6 @@ const payslipSchema = new mongoose.Schema({
 const Payslip = mongoose.model('Payslip', payslipSchema);
 
 module.exports = {
-    hourlyType,
+    hourType,
     Payslip,
 }

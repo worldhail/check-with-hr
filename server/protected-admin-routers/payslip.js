@@ -2,10 +2,11 @@
 const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
+const mongoose = require('mongoose');
 const debugAdmin = require('debug')('app:admin');
 
 // CUSTOM MODULES/MIDDLEWARES
-const { hourlyType, Payslip } = require('../models/payslip');
+const { hourType, Payslip } = require('../models/payslip');
 
 // PAYSLIP JOI SCHEMA AND ITS FUNCTION
 function schemaValidator(schema, info) {
@@ -48,26 +49,69 @@ const allowanceSchema = Joi.object({
 });
 
 const hourlyBreakdownSchema = Joi.object({
-    'Hourly Breakdown': {
-        'Hour Type': Joi.string(),
-        'Hours': Joi.number().default(0),
-        'Earnings': Joi.number().default(0)
-    }
+    'Hourly Breakdown': Joi.object({
+        'breakdown': Joi.array().items(Joi.object({
+            'Hour Type': Joi.string(),
+            'Hours': Joi.number().default(0),
+            'Earnings': Joi.number().default(0)
+        }))
+    })
 });
 
 // HELPER FUNCTIONS
 // Setting the properties of the nested object with dot notation
 function makeDottedKeyPairs(reqBody, objectName) {
-    // convert the object key value pairs in an array
-    const objValue = Object.entries(reqBody[objectName]);
-    
-    // connect the nested object property to it's child properties with dot notation on a string
-    const keyPairs = objValue.map(([keys, values]) => [`${objectName}.${keys}`, values]);
-    return keyPairs;
+    if (objectName = 'Hourly Breakdown') {
+        const breakdownEntries = reqBody[objectName]['breakdown'];
+        const reqBodyHourType = breakdownEntries.map(items => items['Hour Type']);
+        const breakdown = [];
+        const reqBodyarrayFilters = [];
+        for (let i = 0; reqBodyHourType.length > i; i++) {
+            const fromHourTypeObject = breakdownEntries.filter(item => item['Hour Type'] === reqBodyHourType[i]);
+            const identifier = reqBodyHourType[i]
+                .split(/\W/)
+                .join('')
+                .replace(/[^]/, reqBodyHourType[i][0].toLowerCase()); 
+
+            breakdown.push([`Hourly Breakdown.breakdown.$[${identifier}].Hours`, fromHourTypeObject[0]['Hours']]);
+            breakdown.push([`Hourly Breakdown.breakdown.$[${identifier}].Earnings`, fromHourTypeObject[0]['Earnings']]);
+            reqBodyarrayFilters.push({ [`${identifier}.Hour Type`]: reqBodyHourType[i] });
+        }
+
+        const { newBreakdown } = { newBreakdown: Object.fromEntries(breakdown) };
+        return { newBreakdown, reqBodyarrayFilters};
+    } else {
+        // convert the object key value pairs in an array
+        const objEntries = Object.entries(reqBody[objectName]);
+
+        // connect the nested object property to it's child properties with dot notation on a string
+        const keyPairs = objEntries.map(([keys, values]) => [`${objectName}.${keys}`, values]);
+        return keyPairs;
+    }
 };
 
 // sum of the nested objects from the saved values and new input values
 function getTotal(reqBody, objectName, savedObject) {
+    if (objectName === 'Hourly Breakdown') {
+        // sum of hours and earnings that will be updated
+        const breakdown = reqBody[objectName]['breakdown'];
+        const reqBodyHourTypes = breakdown.map(items => items['Hour Type']);
+        const sumOfNewHours = breakdown.map(items => items['Hours']).reduce((accu, curr) => accu + curr, 0);
+        const sumOfNewEarnings = breakdown.map(items => items['Earnings']).reduce((accu, curr) => accu + curr, 0);
+
+        // getting all the hours and earnings that will not be updated
+        const unchangedHourTypes = savedObject['breakdown']
+            .filter(item => !reqBodyHourTypes.includes(item['Hour Type']));
+        const sumOfNotUpdatedHours = unchangedHourTypes
+            .map(item => item['Hours'])
+            .reduce((accu, curr) => accu + curr, 0);;
+        const sumOfNotUpdatedEarnings = unchangedHourTypes
+            .map(item => item['Earnings'])
+            .reduce((accu, curr) => accu + curr, 0);;
+        const totalHours = sumOfNewHours + sumOfNotUpdatedHours;
+        const totalEarnings = sumOfNewEarnings + sumOfNotUpdatedEarnings;
+        return { hours: totalHours, earnings: totalEarnings };
+    } else {
     // convert the object key value pairs in an array
     const reqBodykeyPairs = Object.entries(reqBody[objectName]);
     const saveObjectKeyPairs = Object.entries(savedObject[objectName]._doc);
@@ -83,6 +127,7 @@ function getTotal(reqBody, objectName, savedObject) {
     const values = reqBodykeyPairs.map(([keys, values]) => values);
     const sum = Number(values.reduce((acc, curr) => acc + curr, 0).toFixed(2));
     return sum;
+    }
 };
 
 // ROUTERS
@@ -95,11 +140,18 @@ router.post('/payslip-template/:id', async (req, res, next) => {
         else {
             // make an instance of the hourly type for the hourly breakdown
             const breakdown = [];
-            for (let i = 0; hourlyType.length > i; i++) {
-                breakdown.push({'Hour Type': hourlyType[i]})
+            for (let i = 0; hourType.length > i; i++) {
+                breakdown.push({
+                    'Hour Type': hourType[i],
+                    'Hours': 0,
+                    'Earnings': 0
+                })
             }
 
-            const payslip = new Payslip({ user: id, 'Hourly Breakdown': breakdown });
+            const payslip = new Payslip({
+                user: id, 
+                'Hourly Breakdown': { breakdown, _id: new mongoose.Types.ObjectId() }
+            });
             await payslip.save();
             res.status(201).send(payslip);
         }
@@ -149,10 +201,9 @@ router.put('/payslip/contributions-and-deductions/:id', async (req, res, next)=>
     try {
         const contriAndDeduct = await Payslip.findOne({ user: id }).select({ 'Contributions & Deductions': 1, _id: 0 });
         const contriAndDeductId = contriAndDeduct['Contributions & Deductions']._id;
-        debugAdmin('idasdf', contriAndDeduct, contriAndDeductId);
         if (!contriAndDeduct) return res.status(400).send('Payslip not found for the user');
 
-        // add all the property values of the Earning object
+        // add all the property values of the Contributions & Deductions object
         const sum = getTotal(req.body, 'Contributions & Deductions', contriAndDeduct);
 
         // set a dot notation on a string type for the key pairs and push the total property
@@ -182,7 +233,7 @@ router.put('/payslip/allowances/:id', async (req, res, next)=> {
         const allowancesId = allowances['Allowances']._id;
         if (!allowances) return res.status(400).send('Payslip not found for the user');
 
-        // add all the property values of the Earning object
+        // add all the property values of the Allowances object
         const sum = getTotal(req.body, 'Allowances', allowances);
 
         // set a dot notation on a string type for the key pairs and push the total property
@@ -194,6 +245,41 @@ router.put('/payslip/allowances/:id', async (req, res, next)=> {
         const updateAllowances = await Payslip.updateOne({ user: id, 'Allowances._id': allowancesId }, { $set: newValues });
         debugAdmin('Allowances updated ', updateAllowances);
         res.send(updateAllowances);
+    } catch (error) {
+        next(error);
+    }
+});
+
+// EDITTING PAYSLIP TEMPLATE FOR HOURLY BREAKDOWN CATEGORY
+router.put('/payslip/hourly-breakdown/:id', async (req, res, next)=> {
+    const id = req.params.id;
+    
+    // validate the input object and its properties
+    const { error } = schemaValidator(hourlyBreakdownSchema, req.body);
+    if (error) return res.status(400).send(error.details.map(items => items.message));s
+
+    try {
+        const payslip = await Payslip.findOne({ user: id }).select({ 'Hourly Breakdown': 1, 'Totals': 1, 'Earnings': 1 });
+        const hourlyBreakdown = payslip['Hourly Breakdown'];
+        const hourlyBreakdownId = hourlyBreakdown._id;
+        if (!payslip) return res.status(400).send('Payslip not found for the user');
+
+        // add all the property values of the Hourly Breakdown object
+        const sum = getTotal(req.body, 'Hourly Breakdown', hourlyBreakdown);
+
+        // set a dot notation on a string type for the key pairs and push the total property
+        const dottedPairs = makeDottedKeyPairs(req.body, 'Hourly Breakdown');
+        const updateHourlyBreakdown = await Payslip.updateOne({ user: id, 'Hourly Breakdown._id': hourlyBreakdownId },
+            { $set: dottedPairs.newBreakdown },
+            { arrayFilters: dottedPairs.reqBodyarrayFilters }
+        );
+        const updateTotals = await Payslip.updateOne({ user: id }, {
+            $set: {[`Totals.Hours`]: sum.hours,
+            [`Earnings.Earnings from Hours Worked`]: sum.earnings}
+    });
+        debugAdmin('Hourly Breakdown updated ', updateHourlyBreakdown);
+        debugAdmin('Total Hours and Earnings for hours are updated ', updateHourlyBreakdown);
+        res.send(updateHourlyBreakdown);
     } catch (error) {
         next(error);
     }
