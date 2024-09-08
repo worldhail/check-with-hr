@@ -54,18 +54,28 @@ const allowanceSchema = new mongoose.Schema({
     'Total Allowances': { type: Number, default: 0 },
 });
 
-const hourlyBreakdownSchema = new mongoose.Schema({
+
+const breakdownSchema = new mongoose.Schema({
     'Hour Type': { type: String, enum: hourType },
     'Hours': { type: Number, default: 0 },
     'Earnings': { type: Number, default: 0 }
 }, { _id: false });
+
+const hourlyBreakdownSchema = new mongoose.Schema({
+    'breakdown': {
+        type: [ breakdownSchema ],
+        default: function () {
+            return hourType.map(types => ({ 'Hour Type': types, 'Hours': 0, 'Earnings': 0 }))
+        }
+    }
+});
 
 const payslipSchema = new mongoose.Schema({
     'user': { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     'Earnings': { type: earningsSchema, default: () => ({}) },
     'Contributions & Deductions': { type: contriAndDeductSchema, default: () => ({}) },
     'Allowances': { type: allowanceSchema, default: () => ({}) },
-    'Hourly Breakdown': { type: mongoose.Schema.Types.Mixed },
+    'Hourly Breakdown': { type: hourlyBreakdownSchema, default: () => ({}) },
     'Totals': {
         'Hours': { type: Number, default: 0 },
         'Net Earnings': { type: Number, default: 0 },

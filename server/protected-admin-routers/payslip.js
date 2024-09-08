@@ -53,7 +53,7 @@ const hourlyBreakdownSchema = Joi.object({
         'breakdown': Joi.array().items(Joi.object({
             'Hour Type': Joi.string(),
             'Hours': Joi.number().default(0),
-            'Earnings': Joi.number().default(0)
+            // 'Earnings': Joi.number().default(0)
         }))
     })
 });
@@ -61,7 +61,7 @@ const hourlyBreakdownSchema = Joi.object({
 // HELPER FUNCTIONS
 // Setting the properties of the nested object with dot notation
 function makeDottedKeyPairs(reqBody, objectName) {
-    if (objectName = 'Hourly Breakdown') {
+    if (objectName === 'Hourly Breakdown') {
         const breakdownEntries = reqBody[objectName]['breakdown'];
         const reqBodyHourType = breakdownEntries.map(items => items['Hour Type']);
         const breakdown = [];
@@ -130,6 +130,29 @@ function getTotal(reqBody, objectName, savedObject) {
     }
 };
 
+// CALCULATE BREAKDOWN EARNINGS FOR HOURS ACCUMULATED EACH DAY
+function getHoursRate(reqBody, objectName) {
+    const breakdown = reqBody[objectName]['breakdown'];
+    const reqBodyHourType = breakdown.map(item => item['Hour Type']);
+    const earnings = 'Earnings';
+    let hourlyRate = 74.747;
+    let num;
+    const index = (hrType) => breakdown.findIndex(item => item['Hour Type'] === hrType);
+    const getHourlyRate = hourType => {
+        const hrType = breakdown.filter(type => type['Hour Type'] === hourType);
+        return { numberOfHours: (rate) => Number((hrType[0]['Hours'] * rate).toFixed(2)) }
+    };
+
+    if (reqBodyHourType.includes('Regular Hours')) {
+        num = index('Regular Hours');
+        breakdown[num][earnings] = getHourlyRate('Regular Hours').numberOfHours(hourlyRate);
+    }
+    if (reqBodyHourType.includes('Regular Holiday Hours')) {
+        num = index('Regular Holiday Hours');
+        breakdown[num][earnings] = getHourlyRate('Regular Holiday Hours').numberOfHours(hourlyRate * 2);
+    }
+};
+
 // ROUTERS
 // CREATING A PAYLISP TEMPLATE
 router.post('/payslip-template/:id', async (req, res, next) => {
@@ -138,21 +161,8 @@ router.post('/payslip-template/:id', async (req, res, next) => {
         const savedPayslip = await Payslip.findOne({ user: id });
         if (savedPayslip) return res.send(savedPayslip);
         else {
-            // make an instance of the hourly type for the hourly breakdown
-            const breakdown = [];
-            for (let i = 0; hourType.length > i; i++) {
-                breakdown.push({
-                    'Hour Type': hourType[i],
-                    'Hours': 0,
-                    'Earnings': 0
-                })
-            }
-
-            const payslip = new Payslip({
-                user: id, 
-                'Hourly Breakdown': { breakdown, _id: new mongoose.Types.ObjectId() }
-            });
-            await payslip.save();
+            const payslip = new Payslip({user: id});
+            await payslip.save()
             res.status(201).send(payslip);
         }
     } catch (error) {
@@ -256,13 +266,16 @@ router.put('/payslip/hourly-breakdown/:id', async (req, res, next)=> {
     
     // validate the input object and its properties
     const { error } = schemaValidator(hourlyBreakdownSchema, req.body);
-    if (error) return res.status(400).send(error.details.map(items => items.message));s
+    if (error) return res.status(400).send(error.details.map(items => items.message));
 
     try {
         const payslip = await Payslip.findOne({ user: id }).select({ 'Hourly Breakdown': 1, 'Totals': 1, 'Earnings': 1 });
         const hourlyBreakdown = payslip['Hourly Breakdown'];
         const hourlyBreakdownId = hourlyBreakdown._id;
         if (!payslip) return res.status(400).send('Payslip not found for the user');
+
+        // calculate the hourly rated from the new hours input and add Earnings object in the req.body
+        getHoursRate(req.body, 'Hourly Breakdown');
 
         // add all the property values of the Hourly Breakdown object
         const sum = getTotal(req.body, 'Hourly Breakdown', hourlyBreakdown);
