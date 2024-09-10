@@ -54,7 +54,6 @@ const allowanceSchema = new mongoose.Schema({
     'Total Allowances': { type: Number, default: 0 },
 });
 
-
 const breakdownSchema = new mongoose.Schema({
     'Hour Type': { type: String, enum: hourType },
     'Hours': { type: Number, default: 0 },
@@ -71,7 +70,12 @@ const hourlyBreakdownSchema = new mongoose.Schema({
 });
 
 const payslipSchema = new mongoose.Schema({
-    'user': { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    'Employee': {
+        'user': { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        'name': String,
+        'Paid Out': String,
+        'Pay Period': String
+    },
     'Earnings': { type: earningsSchema, default: () => ({}) },
     'Contributions & Deductions': { type: contriAndDeductSchema, default: () => ({}) },
     'Allowances': { type: allowanceSchema, default: () => ({}) },
@@ -82,6 +86,39 @@ const payslipSchema = new mongoose.Schema({
         'Earnings Excluding Performance Bonus': { type: Number, default: 0 }
     },
     'date': { type: Date, default: Date.now }
+});
+
+payslipSchema.pre('save', async function (next) {
+    const dateToday = new Date();
+    const [ payout1, payout2 ] = [ 5, 20];
+    const [ yearNow, monthNow, dateNow ] = [ dateToday.getFullYear(), dateToday.getMonth(), dateToday.getDate() ];
+    const [ startPeriod1, endPeriod1, startPeriod2, endPeriod2 ] = [ 1, 15, 16, 0];
+    try {
+        // first cut off pay
+        if (dateNow <= payout1 || dateNow >= payout2) {
+            let periodMonth = dateNow > payout2 ? monthNow : monthNow - 1;
+            const payoutDate =  new Date(yearNow, periodMonth, payout1)
+            const startDate = new Date(yearNow, periodMonth, startPeriod2).toLocaleDateString();
+            const endDate = new Date(yearNow, periodMonth + 1, endPeriod2).toLocaleDateString();
+            this['Employee']['Paid Out'] = payoutDate.toDateString();
+            this['Employee']['Pay Period'] = `${startDate} to ${endDate}`;
+        } else {
+            // second cut off pay
+            const payoutDate =  new Date(yearNow, monthNow, payout2)
+            const startDate = new Date(yearNow, monthNow, startPeriod1).toLocaleDateString();
+            const endDate = new Date(yearNow, monthNow, endPeriod1).toLocaleDateString();
+            this['Employee']['Paid Out'] = payoutDate.toDateString();
+            this['Employee']['Pay Period'] = `${startDate} to ${endDate}`;
+        }
+
+        // to make an instance for the employee name and its pay date details
+        await this.populate('Employee.user');
+        const user = this['Employee'].user;
+        this['Employee'].name = `${user.firstName} ${user.middleName} ${user.lastName}`;
+    next();
+    } catch (error) {
+        next(error);
+    }
 });
 
 const Payslip = mongoose.model('Payslip', payslipSchema);

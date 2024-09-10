@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
 const mongoose = require('mongoose');
 const debugAdmin = require('debug')('app:admin');
 
@@ -13,6 +14,12 @@ function schemaValidator(schema, info) {
     const result = schema.validate(info, { abortEarly: false });
     return result;
 };
+
+const userSchema = Joi.object({
+    'Employee': Joi.object({
+        user: Joi.objectId().required()
+    })
+});
 
 const earningSchema =  Joi.object({
     'Earnings': Joi.object({
@@ -157,11 +164,14 @@ function getHoursRate(reqBody, objectName) {
 // CREATING A PAYLISP TEMPLATE
 router.post('/payslip-template/:id', async (req, res, next) => {
     const id = req.params.id;
+    const { error } = schemaValidator(userSchema, { 'Employee': { user: id }});
+    if (error) return res.status(400).send(error.details.map(items => items.message));
+
     try {
-        const savedPayslip = await Payslip.findOne({ user: id });
+        const savedPayslip = await Payslip.findOne({ 'Employee.user': id });
         if (savedPayslip) return res.send(savedPayslip);
         else {
-            const payslip = new Payslip({user: id});
+            const payslip = new Payslip({ 'Employee.user': id });
             await payslip.save()
             res.status(201).send(payslip);
         }
