@@ -75,17 +75,20 @@ function makeDottedKeyPairs(reqBody, objectName) {
         const breakdown = [];
         const reqBodyarrayFilters = [];
         for (let i = 0; reqBodyHourType.length > i; i++) {
+            // get the item object accordingly to make an identifier for the arrayFilter
             const fromHourTypeObject = breakdownEntries.filter(item => item['Hour Type'] === reqBodyHourType[i]);
             const identifier = reqBodyHourType[i]
                 .split(/\W/)
                 .join('')
                 .replace(/[^]/, reqBodyHourType[i][0].toLowerCase()); 
 
+            // push the new updates into dotted notation with the identifier for object convertion
             breakdown.push([`Hourly Breakdown.breakdown.$[${identifier}].Hours`, fromHourTypeObject[0]['Hours']]);
             breakdown.push([`Hourly Breakdown.breakdown.$[${identifier}].Earnings`, fromHourTypeObject[0]['Earnings']]);
             reqBodyarrayFilters.push({ [`${identifier}.Hour Type`]: reqBodyHourType[i] });
         }
 
+        // convert the array into objects and return 2 properties to pass sets of updates with updateOne method
         const { newBreakdown } = { newBreakdown: Object.fromEntries(breakdown) };
         return { newBreakdown, reqBodyarrayFilters};
     } else {
@@ -110,6 +113,8 @@ function getTotal(reqBody, objectName, savedObject) {
         // getting all the hours and earnings that will not be updated
         const unchangedHourTypes = savedObject['breakdown']
             .filter(item => !reqBodyHourTypes.includes(item['Hour Type']));
+
+        //sum of the updated and not updated values to get an instant total
         const sumOfNotUpdatedHours = unchangedHourTypes
             .map(item => item['Hours'])
             .reduce((accu, curr) => accu + curr, 0);;
@@ -138,19 +143,22 @@ function getTotal(reqBody, objectName, savedObject) {
     }
 };
 
-// CALCULATE BREAKDOWN EARNINGS FOR HOURS ACCUMULATED EACH DAY
+// CALCULATE BREAKDOWN EARNINGS FOR HOURS ACCUMULATED
 function getHoursRate(reqBody, objectName) {
     const breakdown = reqBody[objectName]['breakdown'];
     const reqBodyHourType = breakdown.map(item => item['Hour Type']);
     const earnings = 'Earnings';
     let hourlyRate = 74.747;
     let num;
+
+    // get the index of the object for the hour type for conditional statement below
     const index = (hrType) => breakdown.findIndex(item => item['Hour Type'] === hrType);
     const getHourlyRate = hourType => {
         const hrType = breakdown.filter(type => type['Hour Type'] === hourType);
         return { numberOfHours: (rate) => Number((hrType[0]['Hours'] * rate).toFixed(2)) }
     };
 
+    // each hour type has different calculations and hourly rates
     if (reqBodyHourType.includes('Regular Hours')) {
         num = index('Regular Hours');
         breakdown[num][earnings] = getHourlyRate('Regular Hours').numberOfHours(hourlyRate);
