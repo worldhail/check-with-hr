@@ -7,7 +7,8 @@ const mongoose = require('mongoose');
 const debugAdmin = require('debug')('app:admin');
 
 // CUSTOM MODULES/MIDDLEWARES
-const { hourType, Payslip } = require('../models/payslip');
+const { Payslip } = require('../models/payslip');
+const { User } = require('../models/user');
 
 // PAYSLIP JOI SCHEMA AND ITS FUNCTION
 function schemaValidator(schema, info) {
@@ -168,6 +169,9 @@ router.post('/payslip-template/:id', async (req, res, next) => {
     if (error) return res.status(400).send(error.details.map(items => items.message));
 
     try {
+        const user = await User.findOne({ _id: id });
+        if (!user) return res.status(400).send('Invalid ID')
+
         const savedPayslip = await Payslip.findOne({ 'Employee.user': id });
         if (savedPayslip) return res.send(savedPayslip);
         else {
