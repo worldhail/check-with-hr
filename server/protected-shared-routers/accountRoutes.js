@@ -1,15 +1,14 @@
-// THIS FILE WILL BE SOON REMOVE DEPENDING AS THIS IS TRANSFERED INTO ACCOUNT ROUTES FILE
-
 // NPM PACKAGES
-const Joi = require('joi');
 const express = require('express');
 const router = express.Router();
-const _pick = require('lodash.pick');
-const bcrypt = require('bcrypt');
 const debugUser = require('debug')('app:user');
+const Joi = require('joi');
+const bcrypt = require('bcrypt');
+const _pick = require('lodash.pick');
 
 // CUSTOMER MODULES/MIDDLEWARES
 const { User, getTenurity } = require('../models/user');
+const validateUserInfo = require('../utils/validateUserInfo');
 
 //USER PROPERTIES
 const userKeys = [
@@ -26,7 +25,6 @@ const userKeys = [
 
 //GET - USERS INFORMATION
 router.get('/profile', async (req, res, next) => {
-    debugUser('Welcome to employee account');
     try {
         const profile = await User.findById(req.user._id)
             .select('-_id -password -date -role -isVerified -verificationToken -__v ');
@@ -35,6 +33,7 @@ router.get('/profile', async (req, res, next) => {
             return res.status(404).send('User not found');
         }
 
+        debugUser(`Welcome to ${req.user.role} account`);
         res.send(profile);
     } catch (error) {
         next(error);
@@ -111,7 +110,7 @@ router.post('/current-password', async (req, res, next) => {
         if (!validPassword) return res.status(400).send('Incorrect password');
 
         debugUser('Ready for email alteration');
-        res.redirect('/api/user/email');
+        res.redirect('/api/account-routes/email');
     } catch (error) {
         next(error);
     }
@@ -149,9 +148,9 @@ router.put('/password', async (req, res, next) => {
         const hash = await bcrypt.hash(req.body.newPassword, salt);
         const newPassword = hash;
         const updatePassword = await User.updateOne({ _id: req.user._id }, { $set: { password: newPassword }});
-        debugUser('%o', updatePassword);
+        debugUser('Password successfully updated', updatePassword);
         res.clearCookie('x-auth-token');
-        res.send('Password successfully updated');
+        res.redirect('/api/login/user');
     } catch (error) {
         next(error);
     }
@@ -160,7 +159,7 @@ router.put('/password', async (req, res, next) => {
 // MODIFICATIONS - UPDATE OTHER INFO
 router.put('/personal-info', async (req, res, next) => {
     // validate required user info from the request body
-    const { error } = validateOtherInfo(req.body);
+    const { error } = validateUserInfo(req.body);
     if (error) {
         const details = error.details;
         const message = details.map( err => err.message );
@@ -180,12 +179,12 @@ router.put('/personal-info', async (req, res, next) => {
         await User.updateOne({ _id: req.user._id }, { $set: { tenurity: getTenurity(date) }})
         const updateUser = await User.updateOne({ _id: req.user._id }, _pick(req.body, userKeys));
         debugUser('Personal information updated ', updateUser);
-        res.redirect('/api/user/profile');
+        res.redirect('/api/account-routes/profile');
     } catch (error) {
         next(error);
     }
 });
- 
+
 // POST - LOGOUT
 router.post('/logout', async (req, res, next) => {
     try {

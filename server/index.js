@@ -24,6 +24,7 @@ const adminUser = require('./protected-admin-routers/adminUser');
 const adminLookUp = require('./protected-admin-routers/adminLook-up');
 const userCredits = require('./protected-user-routers/leave-credits');
 const payslip = require('./protected-admin-routers/payslip');
+const accountRoutes = require('./protected-shared-routers/accountRoutes');
 
 // MIDDLEWARES
 app.use(helmet());
@@ -45,6 +46,7 @@ app.use('/api/user', userLimiter, auth, authorizeRole(['employee']), userCredits
 app.use('/api/admin', adminLimiter, auth, authorizeRole(['admin']), adminUser);
 app.use('/api/admin', adminLimiter, auth, authorizeRole(['admin']), adminLookUp);
 app.use('/api/admin', adminLimiter, auth, authorizeRole(['admin']), payslip);
+app.use('/api/account-routes', userLimiter, auth, authorizeRole(['admin', 'employee']), accountRoutes);
 
 
 // CONNECT TO MONGODB

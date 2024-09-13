@@ -31,9 +31,9 @@ router.post('/user', async (req, res, next) => {
             sameSite: 'lax',
         });
 
-        const to_roleHomePage = user.role === 'admin' ? '/api/admin/profile' : '/api/user/profile';
-        debugUser('Login successfully to', to_roleHomePage);
-        res.redirect(to_roleHomePage);
+        // const to_roleHomePage = user.role === 'admin' ? '/api/admin/profile' : '/api/user/profile';
+        debugUser('Login successfully to', user.role);
+        res.redirect('/api/account-routes/profile');
     } catch (error) {
         next(error);
     }
