@@ -9,7 +9,8 @@ const bcrypt = require('bcrypt');
 const debugUser = require('debug')('app:user');
 
 // CUSTOMER MODULES/MIDDLEWARES
-const { User, getTenurity } = require('../models/user');
+const { User } = require('../models/user');
+const getTenurity = require('../utils/getTenurity');
 
 //USER PROPERTIES
 const userKeys = [

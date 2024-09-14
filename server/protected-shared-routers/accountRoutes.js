@@ -7,7 +7,8 @@ const bcrypt = require('bcrypt');
 const _pick = require('lodash.pick');
 
 // CUSTOMER MODULES/MIDDLEWARES
-const { User, getTenurity } = require('../models/user');
+const { User } = require('../models/user');
+const getTenurity = require('../utils/getTenurity');
 const validateUserInfo = require('../utils/validateUserInfo');
 
 //USER PROPERTIES

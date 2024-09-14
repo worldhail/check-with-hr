@@ -3,6 +3,9 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const Joi = require('joi');
 
+// CUSTOMER MODULES/MIDDLEWARES
+const getTenurity = require('../utils/getTenurity');
+
 // USER SCHEMA - FORMAT OF THE USER INPUT
 const userSchema = new mongoose.Schema({
     employeeID: { type: String, required: true, unique: true },
@@ -68,19 +71,6 @@ function validateUser (user) {
     return result;
 };
 
-// CALCULATE THE HIRE DATE INTO THE NUMBER OF MONTHS, AND YEARS
-function getTenurity (date) {
-    const currentDate = new Date();
-
-    // Calculate the difference in milliseconds
-    const timeDifference = currentDate - date;
-
-    // Convert milliseconds to years and months
-    const years = Math.floor(timeDifference / (365 * 24 * 60 * 60 * 1000));
-    const months = Math.floor((timeDifference % (365 * 24 * 60 * 60 * 1000)) / (30 * 24 * 60 * 60 * 1000));
-    return { years, months };
-}
-
 // BEFORE SAVING THE USER INFO, TENURITY WILL BE CALCULATED AND STORED AS AN OBJECT
 userSchema.pre('save', function (next) {
     try {
@@ -110,7 +100,6 @@ const User = mongoose.model('User', userSchema);
 User.ensureIndexes();
 
 module.exports = {
-    getTenurity,
     User,
     validateUser
 }
