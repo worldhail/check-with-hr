@@ -1,7 +1,6 @@
 // NPM PACKAGES
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
-const Joi = require('joi');
 
 // CUSTOMER MODULES/MIDDLEWARES
 const getTenurity = require('../utils/getTenurity');
@@ -44,33 +43,6 @@ userSchema.methods.getVerificationToken = function (newEmail) {
     return token;
 };
 
-// JOI SCHEMA VALIDATOR
-function validateUser (user) {
-    const user_Schema = Joi.object({
-        employeeID: Joi.string().alphanum().min(5).max(55).required(),
-        firstName: Joi.string().min(2).max(55).required(),
-        middleName: Joi.string().min(2).max(55).required(),
-        lastName: Joi.string().min(2).max(55).required(),
-        email: Joi.string().min(5).max(55).required().email(),
-        password: Joi.string().min(8).max(255).alphanum().required(),
-        department: Joi.string().min(5).max(55).required(),
-        position: Joi.string().min(2).max(55).required(),
-        hireDate: Joi.date().iso().required(),
-        address: {
-            street: Joi.string().min(3).max(55).required(),
-            barangay: Joi.string().min(3).max(55).required(),
-            city: Joi.string().min(3).max(55).required(),
-            province: Joi.string().min(3).max(55).required(),
-            zipCode: Joi.string().min(2).max(55).required(),
-        },
-        employmentStatus: Joi.string().min(5).max(55).required(),
-        role: Joi.string().valid('admin', 'employee').required()
-    });
-
-    const result = user_Schema.validate(user, { abortEarly: false });
-    return result;
-};
-
 // BEFORE SAVING THE USER INFO, TENURITY WILL BE CALCULATED AND STORED AS AN OBJECT
 userSchema.pre('save', function (next) {
     try {
@@ -99,7 +71,4 @@ userSchema.index({
 const User = mongoose.model('User', userSchema);
 User.ensureIndexes();
 
-module.exports = {
-    User,
-    validateUser
-}
+module.exports = User;

@@ -3,12 +3,11 @@ const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const mongoose = require('mongoose');
 const debugAdmin = require('debug')('app:admin');
 
 // CUSTOM MODULES/MIDDLEWARES
 const { Payslip } = require('../models/payslip');
-const { User } = require('../models/user');
+const User = require('../models/user');
 
 // PAYSLIP JOI SCHEMA AND ITS FUNCTION
 function schemaValidator(schema, info) {

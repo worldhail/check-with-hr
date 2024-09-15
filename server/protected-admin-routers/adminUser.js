@@ -4,7 +4,7 @@ const router = express.Router();
 const debugAdmin = require('debug')('app:admin');
 
 // CUSTOMER MODULES/MIDDLEWARES
-const { User } = require('../models/user');
+const User = require('../models/user');
 
 // GET PROFILE OF ADMIN
 router.get('/profile', async (req, res, next) => {

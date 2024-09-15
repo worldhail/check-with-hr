@@ -4,26 +4,13 @@
 const Joi = require('joi');
 const express = require('express');
 const router = express.Router();
-const _pick = require('lodash.pick');
 const bcrypt = require('bcrypt');
 const debugUser = require('debug')('app:user');
 
 // CUSTOMER MODULES/MIDDLEWARES
-const { User } = require('../models/user');
+const User = require('../models/user');
+const validateUserInfo = require('../utils/validateUserInfo');
 const getTenurity = require('../utils/getTenurity');
-
-//USER PROPERTIES
-const userKeys = [
-    'employeeID',
-    'firstName',
-    'middleName',
-    'lastName',
-    'department',
-    'position',
-    'hireDate',
-    'address',
-    'employmentStatus'
-];
 
 //GET - USERS INFORMATION
 router.get('/profile', async (req, res, next) => {
@@ -161,7 +148,7 @@ router.put('/password', async (req, res, next) => {
 // MODIFICATIONS - UPDATE OTHER INFO
 router.put('/personal-info', async (req, res, next) => {
     // validate required user info from the request body
-    const { error } = validateOtherInfo(req.body);
+    const { error } = validateUserInfo(req.body);
     if (error) {
         const details = error.details;
         const message = details.map( err => err.message );
@@ -179,7 +166,7 @@ router.put('/personal-info', async (req, res, next) => {
         
         const date = new Date(req.body.hireDate);
         await User.updateOne({ _id: req.user._id }, { $set: { tenurity: getTenurity(date) }})
-        const updateUser = await User.updateOne({ _id: req.user._id }, _pick(req.body, userKeys));
+        const updateUser = await User.updateOne({ _id: req.user._id }, req.body);
         debugUser('Personal information updated ', updateUser);
         res.redirect('/api/user/profile');
     } catch (error) {

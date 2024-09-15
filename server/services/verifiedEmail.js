@@ -4,7 +4,7 @@ const router = express.Router();
 const debugUser = require('debug')('app:user');
 
 // CUSTOM MODULES/MIDDLEWARES
-const { User } = require('../models/user');
+const User = require('../models/user');
 
 // TAGGED AS VERIFIED EMAIL ADDRESS ONCE VISITED THIS ROUTE
 router.get('/user/complete', async (req, res, next) => {

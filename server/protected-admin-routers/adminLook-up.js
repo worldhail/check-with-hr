@@ -6,12 +6,12 @@ Joi.objectId = require('joi-objectid')(Joi);
 const debugAdmin = require('debug')('app:admin');
 
 // CUSTOMER MODULES/MIDDLEWARES
-const { User } = require('../models/user');
+const User = require('../models/user');
 const LeaveCredits = require('../models/leave-credits');
 
 // GET EMPLOYEE DOCUMENTS
 router.get('/user-docs', async (req, res, next) => {
-    // validate the new input from the request body
+    // x the new input from the request body
     const { error } = userCategorySchema(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 

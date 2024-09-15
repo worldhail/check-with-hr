@@ -1,27 +1,12 @@
 // NPM PACKAGES
 const express = require('express');
 const router = express.Router();
-const { User, validateUser } = require('../models/user');
-const _pick = require('lodash.pick');
 const bcrypt = require('bcrypt');
 const debugUser = require('debug')('app:user');
 
 // CUSTOM MODULES/MIDDLEWARES
-// const { sendEmailVerification } = require('../services/sendMail');
-
-//USER PROPERTIES
-const userKeys = [
-    'employeeID',
-    'firstName',
-    'middleName',
-    'lastName',
-    'department',
-    'position',
-    'hireDate',
-    'address',
-    'employmentStatus',
-    'role'
-];
+const User = require('../models/user');
+const validateUserInstance = require('../joi-schema-validator/validateUserInstance');
 
 // POST - USER SIGN-UP
 router.post('/user', async (req, res, next) => {
@@ -39,7 +24,7 @@ router.post('/user', async (req, res, next) => {
         }
 
         // validate required user input
-        const { error } = validateUser(req.body);
+        const { error } = validateUserInstance(req.body);
         if (error) {
             const details = error.details;
             const message = details.map( err => err.message );
@@ -47,7 +32,7 @@ router.post('/user', async (req, res, next) => {
         }
 
         // hash password, and save user information to the datebase
-        let user = new User(_pick(req.body, [...userKeys, 'email', 'password']));
+        let user = new User(req.body);
         const salt = await bcrypt.genSalt(parseInt(process.env.SALT_ROUNDS, 10));
         user.password = await bcrypt.hash(user.password, salt);
         const token = user.getVerificationToken(req.body.email);
