@@ -2,17 +2,18 @@
 const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
-Joi.objectId = require('joi-objectid')(Joi);
 const debugAdmin = require('debug')('app:admin');
 
 // CUSTOMER MODULES/MIDDLEWARES
 const User = require('../models/user');
 const LeaveCredits = require('../models/leave-credits');
+const userCategoryLookupSchema = require('../joi-schema-validator/userCategoryLookupSchema');
+const leaveCreditSchema = require('../joi-schema-validator/leaveCreditSchema');
 
 // GET EMPLOYEE DOCUMENTS
 router.get('/user-docs', async (req, res, next) => {
     // x the new input from the request body
-    const { error } = userCategorySchema(req.body);
+    const { error } = userCategoryLookupSchema(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
     try {
@@ -44,7 +45,7 @@ router.post('/user-doc/credits/set/:id', async (req, res, next) => {
     const id = req.params.id;
 
     try {
-        const { error } = leaveCreditSchema(req.body);
+        const { error } = leaveCreditSchema(leaveCreditSchema, req.body);
         if (error) return res.status(400).send(error.details[0].message);
 
         const { regularizationDate, used } = req.body;
@@ -98,30 +99,8 @@ router.patch('/user-doc/credits/update/:id', async (req, res, next) => {
     }
 });
 
-// USER CATEGORY SCHEMA
-function userCategorySchema (userInfo) {
-    const userDocumentSchema = Joi.object({
-        employeeID: Joi.string().alphanum().max(55).allow(''),
-        firstName: Joi.string().max(55).allow('').insensitive(),
-        middleName: Joi.string().max(55).allow(''),
-        lastName: Joi.string().max(55).allow(''),
-        department: Joi.string().max(55).allow(''),
-        hireDate: Joi.date().iso().allow(''),
-        employmentStatus: Joi.string().min(5).max(55).allow(''),
-    });
-
-    const result = userDocumentSchema.validate(userInfo);
-    return result;
-}
-
-// LEAVE CREDITS SCHEMA
-const creditsSchema = Joi.object({
-    regularizationDate: Joi.date().iso().required(),
-    used: Joi.number().optional()
-});
-
-function leaveCreditSchema(info) {
-    const result = creditsSchema.validate(info);
+function leaveCreditSchema(schema, info) {
+    const result = schema.validate(info);
     return result;
 }
 

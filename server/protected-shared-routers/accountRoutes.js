@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt');
 // CUSTOMER MODULES/MIDDLEWARES
 const User = require('../models/user');
 const getTenurity = require('../utils/getTenurity');
-const validateUserInfo = require('../utils/validateUserInfo');
+const validateUserInfo = require('../joi-schema-validator/profileSchema');
 
 //GET - USERS INFORMATION
 router.get('/profile', async (req, res, next) => {

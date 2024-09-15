@@ -9,7 +9,7 @@ const debugUser = require('debug')('app:user');
 
 // CUSTOMER MODULES/MIDDLEWARES
 const User = require('../models/user');
-const validateUserInfo = require('../utils/validateUserInfo');
+const validateUserInfo = require('../joi-schema-validator/profileSchema');
 const getTenurity = require('../utils/getTenurity');
 
 //GET - USERS INFORMATION

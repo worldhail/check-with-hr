@@ -8,62 +8,17 @@ const debugAdmin = require('debug')('app:admin');
 // CUSTOM MODULES/MIDDLEWARES
 const { Payslip } = require('../models/payslip');
 const User = require('../models/user');
+const userObjectIdSchema = require('../joi-schema-validator/userObjectIdSchema');
+const earningSchema = require('../joi-schema-validator/earningSchema');
+const contriAndDeductSchema = require('../joi-schema-validator/contriAndDeductSchema');
+const allowanceSchema = require('../joi-schema-validator/allowanceSchema');
+const hourlyBreakdownSchema = require('../joi-schema-validator/hourlyBreakdownSchema');
 
 // PAYSLIP JOI SCHEMA AND ITS FUNCTION
 function schemaValidator(schema, info) {
     const result = schema.validate(info, { abortEarly: false });
     return result;
 };
-
-const userSchema = Joi.object({
-    'Employee': Joi.object({
-        user: Joi.objectId().required()
-    })
-});
-
-const earningSchema =  Joi.object({
-    'Earnings': Joi.object({
-        'Earnings from Hours Worked': Joi.number().default(0),
-        'Performance Bonus / Attendance bonus': Joi.number().default(0),
-        'Other Earnings / Relocation / Referral': Joi.number().default(0)
-    })
-});
-
-const contriAndDeductSchema = Joi.object({
-    'Contributions & Deductions': Joi.object({
-        'Pag-IBIG': Joi.number().default(0),
-        'SSS': Joi.number().default(0),
-        'Philhealth': Joi.number().default(0),
-        'BIR Withholding Tax': Joi.number().default(0),
-        'SSS Loan Repayment': Joi.number().default(0),
-        'Pagibig Loan Repayment': Joi.number().default(0),
-        'Other Deductions': Joi.number().default(0)
-    })
-});
-
-const allowanceSchema = Joi.object({
-    'Allowances': Joi.object({
-        'Rice Allowance': Joi.number().default(0),
-        'Laundry Allowance': Joi.number().default(0),
-        'Medical Cash Allowance': Joi.number().default(0),
-        'Uniform Allowance': Joi.number().default(0),
-        'Employee Pag-IBIG share paid by Smiles': Joi.number().default(0),
-        'Employee Philhealth share paid by Smiles': Joi.number().default(0),
-        '13th Month': Joi.number().default(0),
-        'Complexity Pay': Joi.number().default(0),
-        'Other Allowances': Joi.number().default(0)
-    })
-});
-
-const hourlyBreakdownSchema = Joi.object({
-    'Hourly Breakdown': Joi.object({
-        'breakdown': Joi.array().items(Joi.object({
-            'Hour Type': Joi.string(),
-            'Hours': Joi.number().default(0),
-            // 'Earnings': Joi.number().default(0)
-        }))
-    })
-});
 
 // HELPER FUNCTIONS
 // Setting the properties of the nested object with dot notation
@@ -172,7 +127,7 @@ function getHoursRate(reqBody, objectName) {
 // CREATING A PAYLISP TEMPLATE
 router.post('/payslip-template/:id', async (req, res, next) => {
     const id = req.params.id;
-    const { error } = schemaValidator(userSchema, { 'Employee': { user: id }});
+    const { error } = schemaValidator(userObjectIdSchema, { 'Employee': { user: id }});
     if (error) return res.status(400).send(error.details.map(items => items.message));
 
     try {
