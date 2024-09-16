@@ -9,6 +9,7 @@ const bcrypt = require('bcrypt');
 const User = require('../models/user');
 const getTenurity = require('../utils/getTenurity');
 const profileSchema = require('../joi-schema-validator/profileSchema');
+const newPasswordSchema = require('../joi-schema-validator/newPasswordSchema');
 
 //GET - USERS INFORMATION
 router.get('/profile', async (req, res, next) => {
