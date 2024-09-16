@@ -9,11 +9,12 @@ const User = require('../models/user');
 const LeaveCredits = require('../models/leave-credits');
 const userCategoryLookupSchema = require('../joi-schema-validator/userCategoryLookupSchema');
 const leaveCreditSchema = require('../joi-schema-validator/leaveCreditSchema');
+const newPasswordSchema = require('../joi-schema-validator/newPasswordSchema');
 
 // GET EMPLOYEE DOCUMENTS
 router.get('/user-docs', async (req, res, next) => {
     // x the new input from the request body
-    const { error } = userCategoryLookupSchema(req.body);
+    const { error } = userCategoryLookupSchema.validate(req.body, { abortEarly: false });
     if (error) return res.status(400).send(error.details[0].message);
 
     try {
@@ -45,7 +46,7 @@ router.post('/user-doc/credits/set/:id', async (req, res, next) => {
     const id = req.params.id;
 
     try {
-        const { error } = leaveCreditSchema(leaveCreditSchema, req.body);
+        const { error } = leaveCreditSchema.validate(req.body, { abortEarly: false });
         if (error) return res.status(400).send(error.details[0].message);
 
         const { regularizationDate, used } = req.body;
@@ -98,10 +99,5 @@ router.patch('/user-doc/credits/update/:id', async (req, res, next) => {
         next(error);
     }
 });
-
-function leaveCreditSchema(schema, info) {
-    const result = schema.validate(info);
-    return result;
-}
 
 module.exports = router;

@@ -11,6 +11,7 @@ const debugUser = require('debug')('app:user');
 const User = require('../models/user');
 const validateUserInfo = require('../joi-schema-validator/profileSchema');
 const getTenurity = require('../utils/getTenurity');
+const profileSchema = require('../joi-schema-validator/profileSchema');
 
 //GET - USERS INFORMATION
 router.get('/profile', async (req, res, next) => {
@@ -148,7 +149,7 @@ router.put('/password', async (req, res, next) => {
 // MODIFICATIONS - UPDATE OTHER INFO
 router.put('/personal-info', async (req, res, next) => {
     // validate required user info from the request body
-    const { error } = validateUserInfo(req.body);
+    const { error } = profileSchema(req.body, );
     if (error) {
         const details = error.details;
         const message = details.map( err => err.message );

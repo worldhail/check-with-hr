@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt');
 // CUSTOMER MODULES/MIDDLEWARES
 const User = require('../models/user');
 const getTenurity = require('../utils/getTenurity');
-const validateUserInfo = require('../joi-schema-validator/profileSchema');
+const profileSchema = require('../joi-schema-validator/profileSchema');
 
 //GET - USERS INFORMATION
 router.get('/profile', async (req, res, next) => {
@@ -30,17 +30,10 @@ router.get('/profile', async (req, res, next) => {
 //PUT - CHANGE EMAIL ADDRESS
 router.put('/email', async (req, res, next) => {
     // email schema - validate the email format
-    function validateEmail(email) {
-        const emailSchema = Joi.object({
-            newEmail: Joi.string().min(5).max(55).email().required()
-        });
-
-        const result = emailSchema.validate(email);
-        return result;
-    };
+    const emailSchema = Joi.object({ newEmail: Joi.string().min(5).max(55).email().required() });
 
     // validate the new email from the request body
-    const { error } = validateEmail(req.body);
+    const { error } = emailSchema.validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
     try {
@@ -78,16 +71,10 @@ router.put('/email', async (req, res, next) => {
 // POST - ENTER PASSWORD BEFORE GRANTING REQUEST FOR EMAIL CHANGE
 router.post('/current-password', async (req, res, next) => {
     // password schema - validate the password format
-    function validatePassword (password) {
-        const passwordSchema = Joi.object({
-            password: Joi.string().min(8).max(255).alphanum().required()
-        });
-
-        const result = passwordSchema.validate(password);
-        return result;
-    }
+    const passwordSchema = Joi.object({ password: Joi.string().min(8).max(255).alphanum().required() });
+    
     // validate the required password from the request body
-    const { error } = validatePassword(req.body);
+    const { error } = passwordSchema.validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
     // if password is valid get back to the email endpoint to enter new password
@@ -105,20 +92,8 @@ router.post('/current-password', async (req, res, next) => {
 
 // PUT - CHANGE PASSWORD
 router.put('/password', async (req, res, next) => {
-    // password schema - validate the password format
-    function validatePassword (password) {
-        const passwordSchema = Joi.object({
-            currentPassword: Joi.string().min(8).max(255).alphanum().required(),
-            newPassword: Joi.string().min(8).max(255).alphanum().required(),
-            confirmNewPassword: Joi.string().min(8).max(255).alphanum().required()
-        });
-
-        const result = passwordSchema.validate(password);
-        return result;
-    }
-
     // validate the required password from the request body
-    const { error } = validatePassword(req.body);
+    const { error } = newPasswordSchema.validate(req.body, { abortEarly: false });
     if (error) return res.status(400).send(error.details[0].message);
 
     // update new password
@@ -146,7 +121,7 @@ router.put('/password', async (req, res, next) => {
 // MODIFICATIONS - UPDATE OTHER INFO
 router.put('/personal-info', async (req, res, next) => {
     // validate required user info from the request body
-    const { error } = validateUserInfo(req.body);
+    const { error } = profileSchema.validate(req.body, { abortEarly: false });
     if (error) {
         const details = error.details;
         const message = details.map( err => err.message );

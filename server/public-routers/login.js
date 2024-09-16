@@ -1,17 +1,17 @@
 // NPM PACKAGES
 const express = require('express');
 const router = express.Router();
-const Joi = require('joi');
 const bcrypt = require('bcrypt');
 const debugUser = require('debug')('app:user');
 
 // CUSTOM MODULES/MIDDLEWARES
-const { User } = require('../models/user');
+const User = require('../models/user');
+const authLoginSchema = require('../joi-schema-validator/authLoginSchema');
 
 // POST - USER LOGIN
 router.post('/user', async (req, res, next) => {
     // validate user credentials
-    const { error } = validateUser(req.body);
+    const { error } = authLoginSchema.validate(req.body, { abortEarly: false });
     if (error) return res.status(400).send(error.details[0].message);
 
     // if user exist, compare password then autheniticates
@@ -39,19 +39,4 @@ router.post('/user', async (req, res, next) => {
     }
 });
 
-// VALIDATE LOGIN DETAILS ON THEIR FORMAT
-function validateUser (user) {
-    const authSchema = Joi.object({
-        email: Joi.string().required().email(),
-        password: Joi.string().min(8).max(255).alphanum().required(),
-        role: Joi.string().valid('admin', 'employee').required()
-    });
-
-    const result = authSchema.validate(user, { abortEarly: false });
-    return result;
-}
-
-module.exports = {
-    login: router,
-    validateUserAccount: validateUser
-}
+module.exports = router;

@@ -1,8 +1,6 @@
 // NPM PACKAGES
 const express = require('express');
 const router = express.Router();
-const Joi = require('joi');
-Joi.objectId = require('joi-objectid')(Joi);
 const debugAdmin = require('debug')('app:admin');
 
 // CUSTOM MODULES/MIDDLEWARES
@@ -13,12 +11,6 @@ const earningSchema = require('../joi-schema-validator/earningSchema');
 const contriAndDeductSchema = require('../joi-schema-validator/contriAndDeductSchema');
 const allowanceSchema = require('../joi-schema-validator/allowanceSchema');
 const hourlyBreakdownSchema = require('../joi-schema-validator/hourlyBreakdownSchema');
-
-// PAYSLIP JOI SCHEMA AND ITS FUNCTION
-function schemaValidator(schema, info) {
-    const result = schema.validate(info, { abortEarly: false });
-    return result;
-};
 
 // HELPER FUNCTIONS
 // Setting the properties of the nested object with dot notation
@@ -127,7 +119,7 @@ function getHoursRate(reqBody, objectName) {
 // CREATING A PAYLISP TEMPLATE
 router.post('/payslip-template/:id', async (req, res, next) => {
     const id = req.params.id;
-    const { error } = schemaValidator(userObjectIdSchema, { 'Employee': { user: id }});
+    const { error } = userObjectIdSchema.validate({ 'Employee': { user: id }});
     if (error) return res.status(400).send(error.details.map(items => items.message));
 
     try {
@@ -151,7 +143,7 @@ router.put('/payslip/earnings/:id', async (req, res, next)=> {
     const id = req.params.id;
     
     // validate the input object and its properties
-    const { error } = schemaValidator(earningSchema, req.body);
+    const { error } = earningSchema.validate(req.body, { abortEarly: false });
     if (error) return res.status(400).send(error.details.map(items => items.message));
     
     try {
@@ -181,7 +173,7 @@ router.put('/payslip/contributions-and-deductions/:id', async (req, res, next)=>
     const id = req.params.id;
     
     // validate the input object and its properties
-    const { error } = schemaValidator(contriAndDeductSchema, req.body);
+    const { error } = contriAndDeductSchema.validate(req.body, { abortEarly: false });
     if (error) return res.status(400).send(error.details.map(items => items.message));
 
     try {
@@ -211,7 +203,7 @@ router.put('/payslip/allowances/:id', async (req, res, next)=> {
     const id = req.params.id;
     
     // validate the input object and its properties
-    const { error } = schemaValidator(allowanceSchema, req.body);
+    const { error } = allowanceSchema.validate(req.body, { abortEarly: false });
     if (error) return res.status(400).send(error.details.map(items => items.message));
     
     try {
@@ -241,7 +233,7 @@ router.put('/payslip/hourly-breakdown/:id', async (req, res, next)=> {
     const id = req.params.id;
     
     // validate the input object and its properties
-    const { error } = schemaValidator(hourlyBreakdownSchema, req.body);
+    const { error } = hourlyBreakdownSchema.validate(req.body, { abortEarly: false });
     if (error) return res.status(400).send(error.details.map(items => items.message));
 
     try {
