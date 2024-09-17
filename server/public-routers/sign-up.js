@@ -6,7 +6,7 @@ const debugUser = require('debug')('app:user');
 
 // CUSTOM MODULES/MIDDLEWARES
 const User = require('../models/user');
-const validateUserInstance = require('../joi-schema-validator/userInstanceSchema');
+const userInstanceSchema = require('../joi-schema-validator/userInstanceSchema');
 
 // POST - USER SIGN-UP
 router.post('/user', async (req, res, next) => {
@@ -24,7 +24,7 @@ router.post('/user', async (req, res, next) => {
         }
 
         // validate required user input
-        const { error } = validateUserInstance(req.body);
+        const { error } = userInstanceSchema.validate(req.body, { abortEarly: false });
         if (error) {
             const details = error.details;
             const message = details.map( err => err.message );
