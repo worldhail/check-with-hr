@@ -133,8 +133,9 @@ router.put('/personal-info', async (req, res, next) => {
     try {
         const existingUser = await User.findOne({ employeeID: req.body.employeeID });
         const authorizeUser = await User.findOne({ _id: req.user._id });
+        
         // if new employeeID is not the current one and it exists, will not be validated
-        if (existingUser.employeeID === req.body.employeeID) {
+        if (existingUser) {
             if (authorizeUser.employeeID !== req.body.employeeID) return res.status(400).send(`EmployeeID is already registered.`);
         };
         
