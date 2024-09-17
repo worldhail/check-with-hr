@@ -123,7 +123,4 @@ payslipSchema.pre('save', async function (next) {
 
 const Payslip = mongoose.model('Payslip', payslipSchema);
 
-module.exports = {
-    hourType,
-    Payslip,
-}
+module.exports = Payslip;
