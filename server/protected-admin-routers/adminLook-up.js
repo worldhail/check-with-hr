@@ -9,7 +9,6 @@ const User = require('../models/user');
 const LeaveCredits = require('../models/leave-credits');
 const userCategoryLookupSchema = require('../joi-schema-validator/userCategoryLookupSchema');
 const leaveCreditSchema = require('../joi-schema-validator/leaveCreditSchema');
-const newPasswordSchema = require('../joi-schema-validator/newPasswordSchema');
 
 // GET EMPLOYEE DOCUMENTS
 router.get('/user-docs', async (req, res, next) => {

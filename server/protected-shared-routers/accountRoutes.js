@@ -94,7 +94,7 @@ router.post('/current-password', async (req, res, next) => {
 // PUT - CHANGE PASSWORD
 router.put('/password', async (req, res, next) => {
     // validate the required password from the request body
-    const { error } = newPasswordSchema.validate(req.body, { abortEarly: false });
+    const { error } = newPasswordSchema.validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
     // update new password
