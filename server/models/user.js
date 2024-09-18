@@ -45,13 +45,13 @@ userSchema.methods.getVerificationToken = function (newEmail) {
 
 // BEFORE SAVING THE USER INFO, TENURITY WILL BE CALCULATED AND STORED AS AN OBJECT
 userSchema.pre('save', function (next) {
-    try {
+    // try {
         const { years, months } = getTenurity(this.hireDate);
         this.tenurity = { years, months };
         next();
-    } catch(err) {
-        next(err);
-    }
+    // } catch(err) {
+    //     next(err);
+    // }
 });
 
 userSchema.index({

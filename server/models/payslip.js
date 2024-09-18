@@ -93,7 +93,7 @@ payslipSchema.pre('save', async function (next) {
     const [ payout1, payout2 ] = [ 5, 20];
     const [ yearNow, monthNow, dateNow ] = [ dateToday.getFullYear(), dateToday.getMonth(), dateToday.getDate() ];
     const [ startPeriod1, endPeriod1, startPeriod2, endPeriod2 ] = [ 1, 15, 16, 0];
-    try {
+    // try {
         // first cut off pay
         if (dateNow <= payout1 || dateNow >= payout2) {
             let periodMonth = dateNow > payout2 ? monthNow : monthNow - 1;
@@ -116,9 +116,9 @@ payslipSchema.pre('save', async function (next) {
         const user = this['Employee'].user;
         this['Employee'].name = `${user.firstName} ${user.middleName} ${user.lastName}`;
     next();
-    } catch (error) {
-        next(error);
-    }
+    // } catch (error) {
+    //     next(error);
+    // }
 });
 
 const Payslip = mongoose.model('Payslip', payslipSchema);

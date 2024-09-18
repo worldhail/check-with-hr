@@ -16,7 +16,7 @@ router.get('/user-docs', async (req, res, next) => {
     const { error } = userCategoryLookupSchema.validate(req.body, { abortEarly: false });
     if (error) return res.status(400).send(error.details[0].message);
 
-    try {
+    // try {
         const queries = [];
 
         // Seaches every key pairs to ensure documents are retrieved
@@ -36,15 +36,15 @@ router.get('/user-docs', async (req, res, next) => {
             .map(id => result.find(obj => obj._id.toString() === id));
         
         res.send(documents);
-    } catch (error) {
-        next(error);
-    }
+    // } catch (error) {
+    //     next(error);
+    // }
 });
 
 router.post('/user-doc/credits/set/:id', async (req, res, next) => {
     const id = req.params.id;
 
-    try {
+    // try {
         const { error } = leaveCreditSchema.validate(req.body, { abortEarly: false });
         if (error) return res.status(400).send(error.details[0].message);
 
@@ -55,9 +55,9 @@ router.post('/user-doc/credits/set/:id', async (req, res, next) => {
         await leaveCredits.save();
         debugAdmin('New leave credits setup');
         res.status(201).send(leaveCredits);
-    } catch (error) {
-        next(error)
-    }
+    // } catch (error) {
+    //     next(error)
+    // }
 });
 
 router.patch('/user-doc/credits/update/:id', async (req, res, next) => {
@@ -65,7 +65,7 @@ router.patch('/user-doc/credits/update/:id', async (req, res, next) => {
     const { error } = availableSchema.validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
-    try {
+    // try {
         const credits = await LeaveCredits.findOne({ user: req.params.id });
         if (!credits) return res.status(400).send('No user credits found');
         
@@ -94,9 +94,9 @@ router.patch('/user-doc/credits/update/:id', async (req, res, next) => {
             });
         debugAdmin('Leave credits updated', newCredits);
         res.send(newCredits);
-    } catch (error) {
-        next(error);
-    }
+    // } catch (error) {
+    //     next(error);
+    // }
 });
 
 module.exports = router;

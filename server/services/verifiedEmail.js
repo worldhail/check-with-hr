@@ -8,7 +8,7 @@ const User = require('../models/user');
 
 // TAGGED AS VERIFIED EMAIL ADDRESS ONCE VISITED THIS ROUTE
 router.get('/user/complete', async (req, res, next) => {
-    try {
+    // try {
         // check if token is present and valid
         const { token } = req.query;
         if (!token) return res.status(400).send('Invalid request');
@@ -24,9 +24,9 @@ router.get('/user/complete', async (req, res, next) => {
 
         debugUser('Email verified successfully');
         res.status(201).redirect('/api/login/user');
-    } catch (error) {
-        next(error);
-    }
+    // } catch (error) {
+    //     next(error);
+    // }
 });
 
 module.exports = router;

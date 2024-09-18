@@ -6,12 +6,12 @@ const router = express.Router();
 const LeaveCredits = require('../models/leave-credits');
 
 router.get('/leave-credits', async (req, res, next) => {
-    try {
+    // try {
         const userCredits = await LeaveCredits.findOne({ user: req.user._id }); 
         res.send(userCredits);
-    } catch (error) {
-        next(error);
-    }
+    // } catch (error) {
+    //     next(error);
+    // }
 });
 
 module.exports = router;

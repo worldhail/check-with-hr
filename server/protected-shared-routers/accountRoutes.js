@@ -13,7 +13,7 @@ const newPasswordSchema = require('../joi-schema-validator/newPasswordSchema');
 
 //GET - USERS INFORMATION
 router.get('/profile', async (req, res, next) => {
-    try {
+    // try {
         const profile = await User.findById(req.user._id)
             .select('-_id -password -date -role -isVerified -verificationToken -__v ');
         if (!profile) {
@@ -23,9 +23,9 @@ router.get('/profile', async (req, res, next) => {
 
         debugUser(`Welcome to ${req.user.role} account`);
         res.send(profile);
-    } catch (error) {
-        next(error);
-    }
+    // } catch (error) {
+    //     next(error);
+    // }
 });
 
 //PUT - CHANGE EMAIL ADDRESS
@@ -37,7 +37,7 @@ router.put('/email', async (req, res, next) => {
     const { error } = emailSchema.validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
-    try {
+    // try {
         let authorizeUser = await User.findOne({ _id: req.user._id });
         if (authorizeUser.email === req.body.newEmail) return res.status(400).send('Please provide a new email or cancel if you do not want to change it.');
 
@@ -64,9 +64,9 @@ router.put('/email', async (req, res, next) => {
         req.session.newUser = newUser;
         res.clearCookie('x-auth-token');
         res.redirect('/api/new/email-send');
-    } catch (error) {
-        next(error);
-    }
+    // } catch (error) {
+    //     next(error);
+    // }
 });
 
 // POST - ENTER PASSWORD BEFORE GRANTING REQUEST FOR EMAIL CHANGE
@@ -79,16 +79,16 @@ router.post('/current-password', async (req, res, next) => {
     if (error) return res.status(400).send(error.details[0].message);
 
     // if password is valid get back to the email endpoint to enter new password
-    try {
+    // try {
         const authorizeUser = await User.findOne({ _id: req.user._id });
         const validPassword = await bcrypt.compare(req.body.password, authorizeUser.password);
         if (!validPassword) return res.status(400).send('Incorrect password');
 
         debugUser('Ready for email alteration');
         res.redirect('/api/account-routes/email');
-    } catch (error) {
-        next(error);
-    }
+    // } catch (error) {
+    //     next(error);
+    // }
 });
 
 // PUT - CHANGE PASSWORD
@@ -98,7 +98,7 @@ router.put('/password', async (req, res, next) => {
     if (error) return res.status(400).send(error.details[0].message);
 
     // update new password
-    try {
+    // try {
         const user = await User.findById(req.user._id);
         const currentPassword = await bcrypt.compare(req.body.currentPassword, user.password);
         if (!currentPassword) return res.status(400).send('Invalid current password');
@@ -114,9 +114,9 @@ router.put('/password', async (req, res, next) => {
         debugUser('Password successfully updated', updatePassword);
         res.clearCookie('x-auth-token');
         res.redirect('/api/login/user');
-    } catch (error) {
-        next(error);
-    }
+    // } catch (error) {
+    //     next(error);
+    // }
 });
 
 // MODIFICATIONS - UPDATE OTHER INFO
@@ -130,7 +130,7 @@ router.put('/personal-info', async (req, res, next) => {
     };
 
     // update user info
-    try {
+    // try {
         const existingUser = await User.findOne({ employeeID: req.body.employeeID });
         const authorizeUser = await User.findOne({ _id: req.user._id });
 
@@ -144,33 +144,33 @@ router.put('/personal-info', async (req, res, next) => {
         const updateUser = await User.updateOne({ _id: req.user._id }, req.body);
         debugUser('Personal information updated ', updateUser);
         res.redirect('/api/account-routes/profile');
-    } catch (error) {
-        next(error);
-    }
+    // } catch (error) {
+    //     next(error);
+    // }
 });
 
 // POST - LOGOUT
 router.post('/logout', async (req, res, next) => {
-    try {
+    // try {
         res.clearCookie('x-auth-token');
         req.session.destroy();
         debugUser('Logout successfully');
         res.redirect('/api/login/user');
-    } catch (error) {
-        next(error);
-    }
+    // } catch (error) {
+    //     next(error);
+    // }
 });
 
 // DELETE - USER ACCOUNT
 router.delete('/account', async (req, res, next) => {
-    try {
+    // try {
         const deleteMyAccount = await User.deleteOne({ _id: req.user._id });
         res.clearCookie('x-auth-token');
         debugUser('Account successfully deleted', deleteMyAccount);
         res.send('/api/sign-up');
-    } catch (error) {
-        next(error);
-    }
+    // } catch (error) {
+    //     next(error);
+    // }
 });
 
 module.exports = router;

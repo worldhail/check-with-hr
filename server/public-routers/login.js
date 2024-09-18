@@ -15,7 +15,7 @@ router.post('/user', async (req, res, next) => {
     if (error) return res.status(400).send(error.details[0].message);
 
     // if user exist, compare password then autheniticates
-    try {
+    // try {
         const user = await User.findOne({ email: req.body.email });
         if (!user) return res.status(400).send('Invalid email or password');
         if (user.role !== req.body.role) return res.status(400).send('Invalid email or password');
@@ -34,9 +34,9 @@ router.post('/user', async (req, res, next) => {
         // const to_roleHomePage = user.role === 'admin' ? '/api/admin/profile' : '/api/user/profile';
         debugUser('Login successfully to', user.role);
         res.redirect('/api/account-routes/profile');
-    } catch (error) {
-        next(error);
-    }
+    // } catch (error) {
+    //     next(error);
+    // }
 });
 
 module.exports = router;

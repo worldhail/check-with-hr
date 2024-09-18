@@ -9,7 +9,7 @@ const User = require('../models/user');
 // GET PROFILE OF ADMIN
 router.get('/profile', async (req, res, next) => {
     debugAdmin('Welcome to admin account');
-    try {
+    // try {
         const profile = await User.findById(req.user._id)
             .select('-_id -password -date -role -isVerified -verificationToken -__v ');
         if (!profile) {
@@ -18,9 +18,9 @@ router.get('/profile', async (req, res, next) => {
         }
 
         res.send(profile);
-    } catch (error) {
-        next(error);
-    }
+    // } catch (error) {
+    //     next(error);
+    // }
 });
 
 module.exports = router;
