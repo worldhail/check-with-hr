@@ -4,7 +4,7 @@ const router = express.Router();
 const debugAdmin = require('debug')('app:admin');
 
 // CUSTOM MODULES/MIDDLEWARES
-const { Payslip } = require('../models/payslip');
+const Payslip = require('../models/payslip');
 const User = require('../models/user');
 const userObjectIdSchema = require('../joi-schema-validator/userObjectIdSchema');
 const earningSchema = require('../joi-schema-validator/earningSchema');
