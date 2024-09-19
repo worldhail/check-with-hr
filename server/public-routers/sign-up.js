@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const debugUser = require('debug')('app:user');
+const debugError = require('debug')('app:error');
 
 // CUSTOM MODULES/MIDDLEWARES
 const User = require('../models/user');
@@ -53,7 +54,12 @@ router.post('/user', async (req, res, next) => {
         res.redirect('/api/new/email-send');
         // res.status(201).send(_pick(user, [...userKeys, '_id']));
     } catch (error) {
-        req.session.destroy();
+        req.session.destroy(err => {
+            if (err) {
+                debugError('Error destroying session:', err);
+                return res.status(500).send('Error during logout');  // Handle any errors
+            }
+        });
         next(error);
     }
 });

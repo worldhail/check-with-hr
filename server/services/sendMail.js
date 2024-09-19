@@ -57,12 +57,22 @@ router.get('/user/oauth2callback', async (req, res, next) => {
         debugMail('Setting credentials with oAuth');
 
         await sendEmailVerification(newUser.email, token);
-        req.session.destroy();
+        req.session.destroy(err => {
+            if (err) {
+                debugError('Error destroying session:', err);
+                return res.status(500).send('Error during logout');  // Handle any errors
+            }
+        });
         debugMail('Session removed');
 
         res.send('Awesome! Please check your email and verify to complete your account.');
     } catch (error) {
-        req.session.destroy();
+        req.session.destroy(err => {
+            if (err) {
+                debugError('Error destroying session:', err);
+                return res.status(500).send('Error during logout');  // Handle any errors
+            }
+        });
         debugError('Session removed \nFrom redirect URI')
         next(error);
     }

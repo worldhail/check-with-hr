@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const debugUser = require('debug')('app:user');
+const debugError = require('debug')('app:error');
 const Joi = require('joi');
 const bcrypt = require('bcrypt');
 
@@ -153,7 +154,12 @@ router.put('/personal-info', async (req, res, next) => {
 router.post('/logout', async (req, res, next) => {
     // try {
         res.clearCookie('x-auth-token');
-        req.session.destroy();
+        res.session.destroy(err => {
+            if (err) {
+                debugError('Error destroying session:', err);
+                return res.status(500).send('Error during logout');  // Handle any errors
+            }
+        });
         debugUser('Logout successfully');
         res.redirect('/api/login/user');
     // } catch (error) {
