@@ -5,8 +5,6 @@ const debugAdmin = require('debug')('app:admin');
 
 // CUSTOM MODULES/MIDDLEWARES
 const Payslip = require('../models/payslip');
-const User = require('../models/user');
-const userObjectIdSchema = require('../joi-schema-validator/userObjectIdSchema');
 const earningSchema = require('../joi-schema-validator/earningSchema');
 const contriAndDeductSchema = require('../joi-schema-validator/contriAndDeductSchema');
 const allowanceSchema = require('../joi-schema-validator/allowanceSchema');
@@ -14,32 +12,26 @@ const hourlyBreakdownSchema = require('../joi-schema-validator/hourlyBreakdownSc
 const makeDottedKeyPairs = require('../utils/makeDottedKeyPairs');
 const getTotal = require('../utils/getTotal');
 const getHoursRate = require('../utils/getHoursRate');
+const validateObjectId = require('../middleware/validateObjectId');
 
 // ROUTERS
 // CREATING A PAYLISP TEMPLATE
-router.post('/payslip-template/:id', async (req, res, next) => {
+router.post('/payslip-template/:id', validateObjectId(), async (req, res, next) => {
     const id = req.params.id;
-    const { error } = userObjectIdSchema.validate({ 'Employee': { user: id }});
-    if (error) return res.status(400).send(error.details.map(items => items.message));
-
     // try {
-        const user = await User.findOne({ _id: id });
-        if (!user) return res.status(400).send('Invalid ID')
-
         const savedPayslip = await Payslip.findOne({ 'Employee.user': id });
         if (savedPayslip) return res.send(savedPayslip);
-        else {
-            const payslip = new Payslip({ 'Employee.user': id });
-            await payslip.save()
-            res.status(201).send(payslip);
-        }
+
+        const payslip = new Payslip({ 'Employee.user': id });
+        await payslip.save()
+        res.status(201).send(payslip);
     // } catch (error) {
     //     next(error);
     // }
 });
 
 // EDITTING PAYSLIP TEMPLATE FOR EARNINGS CATEGORY
-router.put('/payslip/earnings/:id', async (req, res, next)=> {
+router.put('/payslip/earnings/:id', validateObjectId(), async (req, res, next)=> {
     const id = req.params.id;
     
     // validate the input object and its properties
@@ -69,7 +61,7 @@ router.put('/payslip/earnings/:id', async (req, res, next)=> {
 });
 
 // EDITTING PAYSLIP TEMPLATE FOR CONTRIBUTION AND DEDUCTION CATEGORY
-router.put('/payslip/contributions-and-deductions/:id', async (req, res, next)=> {
+router.put('/payslip/contributions-and-deductions/:id', validateObjectId(), async (req, res, next)=> {
     const id = req.params.id;
     
     // validate the input object and its properties
@@ -99,7 +91,7 @@ router.put('/payslip/contributions-and-deductions/:id', async (req, res, next)=>
 });
 
 // EDITTING PAYSLIP TEMPLATE FOR ALLOWANCES CATEGORY
-router.put('/payslip/allowances/:id', async (req, res, next)=> {
+router.put('/payslip/allowances/:id', validateObjectId(), async (req, res, next)=> {
     const id = req.params.id;
     
     // validate the input object and its properties
@@ -129,7 +121,7 @@ router.put('/payslip/allowances/:id', async (req, res, next)=> {
 });
 
 // EDITTING PAYSLIP TEMPLATE FOR HOURLY BREAKDOWN CATEGORY
-router.put('/payslip/hourly-breakdown/:id', async (req, res, next)=> {
+router.put('/payslip/hourly-breakdown/:id', validateObjectId(), async (req, res, next)=> {
     const id = req.params.id;
     
     // validate the input object and its properties
