@@ -9,6 +9,7 @@ const User = require('../models/user');
 const LeaveCredits = require('../models/leave-credits');
 const userCategoryLookupSchema = require('../joi-schema-validator/userCategoryLookupSchema');
 const leaveCreditSchema = require('../joi-schema-validator/leaveCreditSchema');
+const validateObjectId = require('../middleware/validateObjectId');
 
 // GET EMPLOYEE DOCUMENTS
 router.get('/user-docs', async (req, res, next) => {
@@ -41,7 +42,7 @@ router.get('/user-docs', async (req, res, next) => {
     // }
 });
 
-router.post('/user-doc/credits/set/:id', async (req, res, next) => {
+router.post('/user-doc/credits/set/:id', validateObjectId(), async (req, res, next) => {
     const id = req.params.id;
 
     // try {
@@ -60,13 +61,14 @@ router.post('/user-doc/credits/set/:id', async (req, res, next) => {
     // }
 });
 
-router.patch('/user-doc/credits/update/:id', async (req, res, next) => {
+router.patch('/user-doc/credits/update/:id', validateObjectId(), async (req, res, next) => {
+    const id = req.params.id;
     const availableSchema = Joi.object({ available: Joi.number().required() });
     const { error } = availableSchema.validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
     // try {
-        const credits = await LeaveCredits.findOne({ user: req.params.id });
+        const credits = await LeaveCredits.findOne({ user: id });
         if (!credits) return res.status(400).send('No user credits found');
         
         let numberOfDays = req.body.available;
@@ -86,7 +88,7 @@ router.patch('/user-doc/credits/update/:id', async (req, res, next) => {
         };
         
         const newCredits = await LeaveCredits.updateOne(
-            { user: req.params.id },    
+            { user: id },    
             { $set: {
                     used: usedCredits,
                     available: availableCredits
