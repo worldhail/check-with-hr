@@ -60,7 +60,7 @@ router.get('/user/oauth2callback', async (req, res, next) => {
         req.session.destroy(err => {
             if (err) {
                 debugError('Error destroying session:', err);
-                return res.status(500).send('Error during logout');  // Handle any errors
+                return res.status(500).send('Error during oAuthCallback');  // Handle any errors
             }
         });
         debugMail('Session removed');
@@ -70,7 +70,7 @@ router.get('/user/oauth2callback', async (req, res, next) => {
         req.session.destroy(err => {
             if (err) {
                 debugError('Error destroying session:', err);
-                return res.status(500).send('Error during logout');  // Handle any errors
+                return res.status(500).send('Error during oAuthCallback');  // Handle any errors
             }
         });
         debugError('Session removed \nFrom redirect URI')
@@ -98,7 +98,12 @@ router.get('/email-send', async (req, res, next) => {
                 debugError('sendEmailVerification has an error. \nRequesting to Google oAuth ', error);
                 res.redirect('/api/new/user/google/auth');
             }
-            req.session.destroy();
+            req.session.destroy(err => {
+                if (err) {
+                    debugError('Error destroying session:', err);
+                    return res.status(500).send('Error during sending email verification');  // Handle any errors
+                }
+            });
             debugError('Session removed');
             res.send('Awesome! Please check your email and verify to complete your account.');
         };

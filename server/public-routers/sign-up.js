@@ -57,7 +57,7 @@ router.post('/user', async (req, res, next) => {
         req.session.destroy(err => {
             if (err) {
                 debugError('Error destroying session:', err);
-                return res.status(500).send('Error during logout');  // Handle any errors
+                return res.status(500).send('Error during sign-up');  // Handle any errors
             }
         });
         next(error);
