@@ -3,8 +3,8 @@ const path = require('path');
 require('dotenv').config();
 const envFile = path.join(__dirname, `../.env.${process.env.NODE_ENV}`);
 require('dotenv').config({ path: envFile });
+require('./startup/logging');
 const express = require('express');
-require('express-async-errors');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const app = express();
@@ -26,6 +26,7 @@ const adminLookUp = require('./protected-admin-routers/adminLook-up');
 const userCredits = require('./protected-user-routers/leave-credits');
 const payslip = require('./protected-admin-routers/payslip');
 const accountRoutes = require('./protected-shared-routers/accountRoutes');
+const error = require('./middleware/error');
 
 // MIDDLEWARES
 app.use(helmet());
@@ -48,10 +49,7 @@ app.use('/api/user', userLimiter, auth, authorizeRole(['employee']), userCredits
 app.use('/api/admin', adminLimiter, auth, authorizeRole(['admin']), adminLookUp);
 app.use('/api/admin', adminLimiter, auth, authorizeRole(['admin']), payslip);
 app.use('/api/account-routes', userLimiter, auth, authorizeRole(['admin', 'employee']), accountRoutes);
-app.use((err, req, res, next) => {
-    debug('Server error', err);
-    res.status(500).send('Server error', err);
-});
+app.use(error);
 
 // CONNECT TO MONGODB
 (async function connecToDB() {
