@@ -3,7 +3,6 @@ const path = require('path');
 require('dotenv').config();
 const envFile = path.join(__dirname, `../.env.${process.env.NODE_ENV}`);
 require('dotenv').config({ path: envFile });
-require('./startup/logging');
 const express = require('express');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
@@ -11,6 +10,9 @@ const app = express();
 const helmet = require('helmet');
 const mongoose = require('mongoose');
 const debug = require('debug')('app:error');
+
+//STARTUPS
+require('./startup/logging');
 
 // CUSTOM MODULES/MIDDLEWARES
 const { adminLimiter, userLimiter, verificationLimiter } = require('./middleware/requestLimiter');
