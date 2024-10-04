@@ -1,4 +1,5 @@
-const LeaveCredits = require('../../../models/leave-credits');
+import { describe, beforeEach, afterEach, it, vi, expect } from 'vitest';
+import LeaveCredits from '../../../models/leave-credits';
 
 describe('Leave credits pre save hook', () => {
     let leaveCredits;
@@ -13,10 +14,10 @@ describe('Leave credits pre save hook', () => {
     beforeEach(() => {
         leaveCredits = new LeaveCredits({ regularizationDate: new Date('2023-12-30') });
 
-        jest.spyOn(leaveCredits, 'save').mockImplementation(() => Promise.resolve() );
+        vi.spyOn(leaveCredits, 'save').mockImplementation(() => Promise.resolve() );
     });
 
-    afterEach(() => { jest.clearAllMocks() });
+    afterEach(() => { vi.clearAllMocks() });
 
     it ('should calculate total and available as the same value', async () => {
         await leaveCredits.save();

@@ -1,16 +1,17 @@
-const auth = require('../../../middleware/auth');
-const jwt = require('jsonwebtoken');
+import { describe, beforeEach, afterEach, it, vi, expect } from 'vitest';
+import auth from '../../../middleware/auth';
+import jwt from 'jsonwebtoken';
 
 describe('Token authentication', () => {
     let req, res, next;
 
     beforeEach(() => {
         req = { cookies: {} };
-        res = { status: jest.fn().mockReturnThis(), send: jest.fn() };
-        next = jest.fn();
+        res = { status: vi.fn().mockReturnThis(), send: vi.fn() };
+        next = vi.fn();
     });
 
-    afterEach(() => { jest.clearAllMocks(); });
+    afterEach(() => { vi.clearAllMocks(); });
 
     it('should return 401 if no token is provided', () => {
         auth(req, res, next);
@@ -23,7 +24,7 @@ describe('Token authentication', () => {
     it('should return 400 if token provided is invalid', () => {
         req.cookies['x-auth-token'] = 'x';
 
-        jest.spyOn(jwt, 'verify').mockImplementation(() => { throw new Error(); });
+        vi.spyOn(jwt, 'verify').mockImplementation(() => { throw new Error(); });
 
         auth(req, res, next);
 
@@ -35,7 +36,7 @@ describe('Token authentication', () => {
         req.cookies['x-auth-token'] = 'valid'
         const payload = { _id: 1, role: 'employee' }
 
-        jest.spyOn(jwt, 'verify').mockImplementation(() => req.user = payload);
+        vi.spyOn(jwt, 'verify').mockImplementation(() => req.user = payload);
 
         auth(req, res, next);
 
