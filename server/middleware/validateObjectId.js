@@ -1,7 +1,7 @@
-const User = require("../models/user");
-const userObjectIdSchema = require('../joi-schema-validator/userObjectIdSchema');
+import User from "../models/user.js";
+import userObjectIdSchema from '../joi-schema-validator/userObjectIdSchema.js';
 
-module.exports = function () {
+export default function () {
     return async (req, res, next) => {
         const id = req.params.id;
         const { error } = userObjectIdSchema.validate({ 'Employee': { user: id }});

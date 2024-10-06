@@ -1,8 +1,8 @@
 // NPM PACKAGE
-const Joi = require('joi');
+import Joi from 'joi';
 
 // PAYSLIP HOURLY BREAKDOWN SCHEMA
-module.exports = Joi.object({
+export default Joi.object({
     'Hourly Breakdown': Joi.object({
         'breakdown': Joi.array().items(Joi.object({
             'Hour Type': Joi.string(),

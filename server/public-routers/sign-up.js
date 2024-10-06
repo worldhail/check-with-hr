@@ -1,13 +1,14 @@
 // NPM PACKAGES
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const bcrypt = require('bcrypt');
-const debugUser = require('debug')('app:user');
-const debugError = require('debug')('app:error');
+import bcrypt from 'bcrypt';
+import debug from 'debug';
+const debugUser = debug('app:user');
+const debugError = debug('app:error');
 
 // CUSTOM MODULES/MIDDLEWARES
-const User = require('../models/user');
-const userInstanceSchema = require('../joi-schema-validator/userInstanceSchema');
+import User from '../models/user.js';
+import userInstanceSchema from '../joi-schema-validator/userInstanceSchema.js';
 
 // POST - USER SIGN-UP
 router.post('/user', async (req, res, next) => {
@@ -64,4 +65,4 @@ router.post('/user', async (req, res, next) => {
     }
 });
 
-module.exports = router;
+export default router;

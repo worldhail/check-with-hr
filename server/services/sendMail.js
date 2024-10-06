@@ -1,14 +1,15 @@
 // NPM PACKAGES
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { google } = require('googleapis');
-const axios = require('axios');
-const nodeMailer = require('nodemailer');
-const debugMail = require('debug')('app:mail');
-const debugError = require('debug')('app:error');
+import { google } from 'googleapis';
+import axios from 'axios';
+import nodeMailer from 'nodemailer';
+import debug from 'debug';
+const debugMail = debug('app:mail');
+const debugError = debug('app:error');
 
 // CUSTOM MODULES/MIDDLEWARES
-const Token = require('../models/googleToken');
+import Token from '../models/googleToken.js';
 
 // GLOBAL VARIABLES
 let { newUser } = {}; // store user email and which endpoint it's coming from
@@ -169,4 +170,4 @@ async function sendEmailVerification(recipientEmail, savedToken) {
     }
 };
 
-module.exports = router;
+export default router;

@@ -1,18 +1,19 @@
 // NPM PACKAGES
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const debugAdmin = require('debug')('app:admin');
+import debug from 'debug';
+const debugAdmin = debug('app:admin');
 
 // CUSTOM MODULES/MIDDLEWARES
-const Payslip = require('../models/payslip');
-const earningSchema = require('../joi-schema-validator/earningSchema');
-const contriAndDeductSchema = require('../joi-schema-validator/contriAndDeductSchema');
-const allowanceSchema = require('../joi-schema-validator/allowanceSchema');
-const hourlyBreakdownSchema = require('../joi-schema-validator/hourlyBreakdownSchema');
-const makeDottedKeyPairs = require('../utils/makeDottedKeyPairs');
-const getTotal = require('../utils/getTotal');
-const getHoursRate = require('../utils/getHoursRate');
-const validateObjectId = require('../middleware/validateObjectId');
+import Payslip from '../models/payslip.js';
+import earningSchema from '../joi-schema-validator/earningSchema.js';
+import contriAndDeductSchema from '../joi-schema-validator/contriAndDeductSchema.js';
+import allowanceSchema from '../joi-schema-validator/allowanceSchema.js';
+import hourlyBreakdownSchema from '../joi-schema-validator/hourlyBreakdownSchema.js';
+import makeDottedKeyPairs from '../utils/makeDottedKeyPairs.js';
+import getTotal from '../utils/getTotal.js';
+import getHoursRate from '../utils/getHoursRate.js';
+import validateObjectId from '../middleware/validateObjectId.js';
 
 // ROUTERS
 // CREATING A PAYLISP TEMPLATE
@@ -138,4 +139,4 @@ router.put('/payslip/hourly-breakdown/:id', validateObjectId(), async (req, res)
     res.send(updateHourlyBreakdown);
 });
 
-module.exports = router;
+export default router;

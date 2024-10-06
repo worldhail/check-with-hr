@@ -1,9 +1,10 @@
 // NPM PACKAGE
-const Joi = require('joi');
-Joi.objectId = require('joi-objectid')(Joi);
+import Joi from 'joi';
+import joiObjectid from 'joi-objectid';
+Joi.objectId = joiObjectid(Joi);
 
 // USER OBJECT ID SCHEMA
-module.exports = Joi.object({
+export default Joi.object({
     'Employee': Joi.object({
         user: Joi.objectId().required()
     })

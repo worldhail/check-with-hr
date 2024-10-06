@@ -1,10 +1,11 @@
 // NPM PACKAGES
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const debugUser = require('debug')('app:user');
+import debug from 'debug';
+const debugUser = debug('app:user');
 
 // CUSTOM MODULES/MIDDLEWARES
-const User = require('../models/user');
+import User from '../models/user.js';
 
 // TAGGED AS VERIFIED EMAIL ADDRESS ONCE VISITED THIS ROUTE
 router.get('/user/complete', async (req, res) => {
@@ -25,4 +26,4 @@ router.get('/user/complete', async (req, res) => {
     res.status(201).redirect('/api/login/user');
 });
 
-module.exports = router;
+export default router;

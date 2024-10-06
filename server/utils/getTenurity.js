@@ -1,5 +1,5 @@
 // CALCULATE THE HIRE DATE INTO THE NUMBER OF MONTHS, AND YEARS
-module.exports = function getTenurity (date) {
+export default function getTenurity (date) {
     const currentDate = new Date();
 
     // Calculate the difference in milliseconds

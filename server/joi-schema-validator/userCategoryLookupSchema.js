@@ -1,8 +1,8 @@
 // NPM PACKAGE
-const Joi = require('joi');
+import Joi from 'joi';
 
 // USER CATEGORY SCHEMA
-module.exports = Joi.object({
+export default Joi.object({
     employeeID: Joi.string().alphanum().max(55).allow(''),
     firstName: Joi.string().max(55).allow('').insensitive(),
     middleName: Joi.string().max(55).allow(''),

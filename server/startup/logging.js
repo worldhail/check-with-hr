@@ -1,7 +1,7 @@
-const winston = require('winston');
-require('winston-mongodb');
-require('winston-daily-rotate-file');
-require('express-async-errors');
+import winston from 'winston';
+import 'winston-mongodb';
+import 'winston-daily-rotate-file';
+import 'express-async-errors';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -95,4 +95,4 @@ process.on('uncaughtException', (error) => {
     process.exit(1);
 });
 
-module.exports = logger;
+export default logger;

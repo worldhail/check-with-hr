@@ -1,16 +1,17 @@
 // NPM PACKAGES
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const debugUser = require('debug')('app:user');
-const debugError = require('debug')('app:error');
-const Joi = require('joi');
-const bcrypt = require('bcrypt');
+import debug from 'debug';
+const debugUser = debug('app:user');
+const debugError = debug('app:error');
+import Joi from 'joi';
+import bcrypt from 'bcrypt';
 
 // CUSTOMER MODULES/MIDDLEWARES
-const User = require('../models/user');
-const getTenurity = require('../utils/getTenurity');
-const profileSchema = require('../joi-schema-validator/profileSchema');
-const newPasswordSchema = require('../joi-schema-validator/newPasswordSchema');
+import User from '../models/user.js';
+import getTenurity from '../utils/getTenurity.js';
+import profileSchema from '../joi-schema-validator/profileSchema.js';
+import newPasswordSchema from '../joi-schema-validator/newPasswordSchema.js';
 
 //GET - USERS INFORMATION
 router.get('/profile', async (req, res) => {
@@ -133,7 +134,7 @@ router.put('/personal-info', async (req, res) => {
 // POST - LOGOUT
 router.post('/logout', async (req, res) => {
     res.clearCookie('x-auth-token');
-    res.session.destroy(err => {
+    req.session.destroy(err => {
         if (err) {
             debugError('Error destroying session:', err);
             return res.status(500).send('Error during logout');  // Handle any errors
@@ -151,4 +152,4 @@ router.delete('/account', async (req, res) => {
     res.send('/api/sign-up');
 });
 
-module.exports = router;
+export default router;

@@ -1,5 +1,5 @@
 // CALCULATE BREAKDOWN EARNINGS FOR HOURS ACCUMULATED
-module.exports = function (reqBody, objectName) {
+export default function (reqBody, objectName) {
     const breakdown = reqBody[objectName]['breakdown'];
     const reqBodyHourType = breakdown.map(item => item['Hour Type']);
     const earnings = 'Earnings';

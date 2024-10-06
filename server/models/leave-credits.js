@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const leaveCreditSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -17,4 +17,4 @@ leaveCreditSchema.pre('save', function (next) {
     next();
 });
 
-module.exports = mongoose.model('LeaveCredits', leaveCreditSchema);
+export default mongoose.model('LeaveCredits', leaveCreditSchema);

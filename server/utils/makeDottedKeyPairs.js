@@ -1,5 +1,5 @@
 // Setting the properties of the nested object with dot notation
-module.exports = function (reqBody, objectName) {
+export default function (reqBody, objectName) {
     let result;
 
     if (objectName === 'Hourly Breakdown') {

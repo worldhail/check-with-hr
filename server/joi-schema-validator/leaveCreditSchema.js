@@ -1,8 +1,8 @@
 // NPM PACKAGE
-const Joi = require('joi');
+import Joi from 'joi';
 
 // LEAVE CREDITS SCHEMA
-module.exports = Joi.object({
+export default Joi.object({
     regularizationDate: Joi.date().iso().required(),
     used: Joi.number().optional()
 });

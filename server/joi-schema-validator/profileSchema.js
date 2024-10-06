@@ -1,8 +1,8 @@
 // NPM PACKAGE
-const Joi = require('joi');
+import Joi from 'joi';
 
 // VALIDATOR FOR PROFILE INFO MODIFICATION
-module.exports = Joi.object({
+export default Joi.object({
     employeeID: Joi.string().alphanum().min(5).max(55).required(),
     firstName: Joi.string().min(2).max(55).required(),
     middleName: Joi.string().min(2).max(55).required(),

@@ -1,12 +1,13 @@
 // NPM PACKAGES
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const bcrypt = require('bcrypt');
-const debugUser = require('debug')('app:user');
+import bcrypt from 'bcrypt';
+import debug from 'debug';
+const debugUser = debug('app:user');
 
 // CUSTOM MODULES/MIDDLEWARES
-const User = require('../models/user');
-const authLoginSchema = require('../joi-schema-validator/authLoginSchema');
+import User from '../models/user.js';
+import authLoginSchema from '../joi-schema-validator/authLoginSchema.js';
 
 // POST - USER LOGIN
 router.post('/user', async (req, res) => {
@@ -35,4 +36,4 @@ router.post('/user', async (req, res) => {
     res.redirect('/api/account-routes/profile');
 });
 
-module.exports = router;
+export default router;

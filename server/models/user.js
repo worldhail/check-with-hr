@@ -1,9 +1,9 @@
 // NPM PACKAGES
-const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
+import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 
 // CUSTOMER MODULES/MIDDLEWARES
-const getTenurity = require('../utils/getTenurity');
+import getTenurity from '../utils/getTenurity.js';
 
 // USER SCHEMA - FORMAT OF THE USER INPUT
 const userSchema = new mongoose.Schema({
@@ -67,4 +67,4 @@ userSchema.index({
 const User = mongoose.model('User', userSchema);
 User.ensureIndexes();
 
-module.exports = User;
+export default User;

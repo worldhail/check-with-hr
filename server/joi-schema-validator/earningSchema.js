@@ -1,8 +1,8 @@
 // NPM PACKAGE
-const Joi = require('joi');
+import Joi from 'joi';
 
 // PAYSLIP EARNINGS SCHEMA
-module.exports = Joi.object({
+export default Joi.object({
     'Earnings': Joi.object({
         'Earnings from Hours Worked': Joi.number().default(0),
         'Performance Bonus / Attendance bonus': Joi.number().default(0),

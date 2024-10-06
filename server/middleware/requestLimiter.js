@@ -1,5 +1,5 @@
 // NPM PACKAGES
-const rateLimit = require('express-rate-limit');
+import rateLimit from 'express-rate-limit';
 
 // RATE LIMITER CONFIGURATION
 const userLimiter = rateLimit({
@@ -20,8 +20,4 @@ const verificationLimiter = rateLimit({
     message: 'Too many requests attempted, please try again later'
 });
 
-module.exports = {
-    userLimiter,
-    adminLimiter,
-    verificationLimiter
-}
+export { userLimiter, adminLimiter, verificationLimiter };

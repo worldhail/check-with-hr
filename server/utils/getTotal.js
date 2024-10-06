@@ -1,5 +1,5 @@
 // sum of the nested objects from the saved values and new input values
-module.exports = function (reqBody, objectName, savedObject) {
+export default function (reqBody, objectName, savedObject) {
     let result;
 
     if (objectName === 'Hourly Breakdown') {

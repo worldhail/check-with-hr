@@ -1,8 +1,8 @@
 // NPM PACKAGE
-const Joi = require('joi');
+import Joi from 'joi';
 
 // PAYSLIP ALLOWANCE SCHEMA
-module.exports = Joi.object({
+export default Joi.object({
     'Allowances': Joi.object({
         'Rice Allowance': Joi.number().default(0),
         'Laundry Allowance': Joi.number().default(0),

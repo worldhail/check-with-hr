@@ -1,8 +1,8 @@
 // NPM PACKAGE
-const Joi = require('joi');
+import Joi from 'joi';
 
 // PAYSLIP CONTRIBUTION AND DEDUCTION SCHEMA
-module.exports = Joi.object({
+export default Joi.object({
     'Contributions & Deductions': Joi.object({
         'Pag-IBIG': Joi.number().default(0),
         'SSS': Joi.number().default(0),

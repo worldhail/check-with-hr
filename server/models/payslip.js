@@ -1,5 +1,5 @@
 // NPM PACKAGES
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 // ENUM FOR HOURLY TYPE
 const hourType = [
@@ -118,4 +118,4 @@ payslipSchema.pre('save', async function (next) {
     next();
 });
 
-module.exports = mongoose.model('Payslip', payslipSchema);
+export default mongoose.model('Payslip', payslipSchema);

@@ -1,13 +1,13 @@
 // NPM PACKAGES
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 // CUSTOMER MODULES/MIDDLEWARES
-const LeaveCredits = require('../models/leave-credits');
+import LeaveCredits from '../models/leave-credits.js';
 
 router.get('/leave-credits', async (req, res) => {
     const userCredits = await LeaveCredits.findOne({ user: req.user._id }); 
     res.send(userCredits);
 });
 
-module.exports = router;
+export default router;

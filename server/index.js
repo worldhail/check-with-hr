@@ -1,32 +1,33 @@
 // NPM PACKAGES
-const path = require('path');
-require('dotenv').config();
-const envFile = path.join(__dirname, `../.env.${process.env.NODE_ENV}`);
-require('dotenv').config({ path: envFile });
-const express = require('express');
-const session = require('express-session');
-const cookieParser = require('cookie-parser');
+import dotenv from 'dotenv';
+import path, { join } from 'path';
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+dotenv.config({ path: join(__dirname, `../.env.${process.env.NODE_ENV}`) });
+import express from 'express';
 const app = express();
-const helmet = require('helmet');
-const mongoose = require('mongoose');
-const debug = require('debug')('app:error');
+import session from 'express-session';
+import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import mongoose from 'mongoose';
+import debug from 'debug';
+const debugError = debug('app:error')
 
 //STARTUPS
-require('./startup/logging');
+import './startup/logging.js';
 
 // CUSTOM MODULES/MIDDLEWARES
-const { adminLimiter, userLimiter, verificationLimiter } = require('./middleware/requestLimiter');
-const authorizeRole = require('./middleware/authorizeRole');
-const auth = require('./middleware/auth');
-const login = require('./public-routers/login');
-const signUp = require('./public-routers/sign-up');
-const sendMail = require('./services/sendMail');
-const verifiedEmail = require('./services/verifiedEmail');
-const adminLookUp = require('./protected-admin-routers/adminLook-up');
-const userCredits = require('./protected-user-routers/leave-credits');
-const payslip = require('./protected-admin-routers/payslip');
-const accountRoutes = require('./protected-shared-routers/accountRoutes');
-const error = require('./middleware/error');
+import { adminLimiter, userLimiter, verificationLimiter } from './middleware/requestLimiter.js';
+import authorizeRole from './middleware/authorizeRole.js';
+import auth from './middleware/auth.js';
+import login from './public-routers/login.js';
+import signUp from './public-routers/sign-up.js';
+import sendMail from './services/sendMail.js';
+import verifiedEmail from './services/verifiedEmail.js';
+import adminLookUp from './protected-admin-routers/adminLook-up.js';
+import userCredits from './protected-user-routers/leave-credits.js';
+import payslip from './protected-admin-routers/payslip.js';
+import accountRoutes from './protected-shared-routers/accountRoutes.js';
+import error from './middleware/error.js';
 
 // MIDDLEWARES
 app.use(helmet());
@@ -55,10 +56,11 @@ app.use(error);
         await mongoose.connect(process.env.MONGODB_URI);
         console.log('Connected with MongoDB...');
     } catch (error) {
-        debug('Could not connect to MongoDB...', error);
+        debugError('Could not connect to MongoDB...', error);
     }
 })();
 
 // LISTEN TO PORT
+debug(process.env)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => { console.log(`Listening on port ${PORT}`) });

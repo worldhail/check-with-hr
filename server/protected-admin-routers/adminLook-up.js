@@ -1,15 +1,16 @@
 // NPM PACKAGES
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const Joi = require('joi');
-const debugAdmin = require('debug')('app:admin');
+import Joi from 'joi';
+import debug from 'debug';
+const debugAdmin = debug('app:admin');
 
 // CUSTOMER MODULES/MIDDLEWARES
-const User = require('../models/user');
-const LeaveCredits = require('../models/leave-credits');
-const userCategoryLookupSchema = require('../joi-schema-validator/userCategoryLookupSchema');
-const leaveCreditSchema = require('../joi-schema-validator/leaveCreditSchema');
-const validateObjectId = require('../middleware/validateObjectId');
+import User from '../models/user.js';
+import LeaveCredits from '../models/leave-credits.js';
+import userCategoryLookupSchema from '../joi-schema-validator/userCategoryLookupSchema.js';
+import leaveCreditSchema from '../joi-schema-validator/leaveCreditSchema.js';
+import validateObjectId from '../middleware/validateObjectId.js';
 
 // GET EMPLOYEE DOCUMENTS
 router.get('/user-docs', async (req, res) => {
@@ -87,4 +88,4 @@ router.patch('/user-doc/credits/update/:id', validateObjectId(), async (req, res
     res.send(newCredits);
 });
 
-module.exports = router;
+export default router;
