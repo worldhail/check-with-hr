@@ -1,45 +1,56 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach  } from 'vitest';
+import User from '../../../models/user.js';
 import jwt from 'jsonwebtoken';
-import User from '../../../models/user';
-import mongoose from 'mongoose';
+import getTenurity from '../../../utils/getTenurity.js';
+import { promises } from 'winston-daily-rotate-file';
 
 describe('generateAuthToken', () => {
     let user;
+    const email = 'a@mail.com';
 
     beforeEach(() => {
-        // without joi validation
-        user = new User({ 
-            role: 'employee', 
-            _id: new mongoose.Types.ObjectId(),
-            employeeID: '1',
-            firstName:'a',
-            employmentStatus: 'a',
-            hireDate: new Date(),
-            position: 'a',
-            department: 'a',
-            password: 'a',
-            email: 'a',
-            lastName: 'a',
-            middleName: 'a',
-            address: {
-                street: 'a',
-                barangay: 'a',
-                city: 'a',
-                province: 'a',
-                zipCode: 'a',
-            }
-        });
-
+        user = new User({ role: 'employee', hireDate: '2023-01-15' });
         vi.spyOn(user, 'save').mockImplementation(() => Promise.resolve());
     });
 
-    afterEach(() => vi.clearAllMocks());
+    afterEach(() => { vi.clearAllMocks() });
 
-    it ('should generate a token', async () => {
+    it ('should generate an Auth token', async () => {
         await user.save();
-        
-        const token = user.generateAuthToken();
 
-        expect(jwt.sign).toHaveBeenCalledWith({ _id: user._id, role: user.role }, 'test');
+        const token = user.generateAuthToken();
+        const decode = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
+
+        expect(token).toBeDefined();
+        expect(decode).toHaveProperty('role');
+        expect(decode).toHaveProperty('_id');
+    });
+
+    it ('should generate a verification token', async () => {
+        await user.save();
+
+        const token = user.getVerificationToken(email);
+        const decode = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
+
+        expect(token).toBeDefined();
+        expect(decode).toHaveProperty('role');
+        expect(decode).toHaveProperty('email');
+        expect(decode).toHaveProperty('exp');
+    });
+
+    it ('should get the tenurity in years and/or months', async () => {
+        await user.save();
+        const next = vi.fn();
+        // vi.spyOn.(pre, 'save').mockImplementation(() => )
+
+        const { years, months } = getTenurity(user.hireDate);
+        user.tenurity = { years, months };
+
+        expect(years).toBeTypeOf('number');
+        expect(months).toBeTypeOf('number');
+        expect(user.tenurity).toHaveProperty('years');
+        expect(user.tenurity).toHaveProperty('months');
+        next();
+        expect(next).toHaveBeenCalled();
     });
 });
