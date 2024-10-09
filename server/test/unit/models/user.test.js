@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, vi, afterEach  } from 'vitest';
 import User from '../../../models/user.js';
 import jwt from 'jsonwebtoken';
 import getTenurity from '../../../utils/getTenurity.js';
-import { promises } from 'winston-daily-rotate-file';
 
 describe('generateAuthToken', () => {
     let user;
@@ -41,7 +40,6 @@ describe('generateAuthToken', () => {
     it ('should get the tenurity in years and/or months', async () => {
         await user.save();
         const next = vi.fn();
-        // vi.spyOn.(pre, 'save').mockImplementation(() => )
 
         const { years, months } = getTenurity(user.hireDate);
         user.tenurity = { years, months };
