@@ -5,26 +5,26 @@ import mongoose from 'mongoose';
 
 describe('Payslip pre-save hook', () => {
     const id = new mongoose.Types.ObjectId();
-    let employee, next;
+    let employee, next, schema;
 
     beforeEach(() => {
         employee = new Payslip({ "Employee": { 'user': id } });
         next = vi.fn();
         vi.spyOn(employee, 'save').mockImplementation(() => Promise.resolve());
-    });
 
-    afterEach(() => vi.clearAllMocks());
-
-    it ('it should generate a payslip period with the employee name', async () => {
-        await employee.save();
-
-        const schema = {
+        schema = {
             populate: vi.fn().mockReturnValueOnce(),
             Employee: {
                 user: id,
                 name: vi.fn().mockReturnValue()
             }
         }
+    });
+
+    afterEach(() => vi.clearAllMocks());
+
+    it ('it should generate a payslip period with the employee name', async () => {
+        await employee.save();
 
         generatePayslipPeriod(schema);
         
@@ -36,10 +36,11 @@ describe('Payslip pre-save hook', () => {
         const resultDate = new Date(schema['Employee']['Paid Out']).getDate().toString();
 
         let [payPeriodFrom, dash, payPeriodTo] = schema['Employee']['Pay Period'].split(/\s/);
-        payPeriodFrom = new Date(payPeriodFrom).getTime();
-        payPeriodTo = new Date(payPeriodTo).getTime();
+        payPeriodFrom = new Date(payPeriodFrom);
+        payPeriodTo = new Date(payPeriodTo);
         
-        expect(payPeriodFrom).toBeLessThan(payPeriodTo);
+        expect(payPeriodFrom.getTime()).toBeLessThan(payPeriodTo.getTime());
+        expect(payPeriodFrom.getMonth()).toEqual(payPeriodTo.getMonth());
         expect(payoutDates).toContain(resultDate);
         next();
         expect(next).toHaveBeenCalled();
