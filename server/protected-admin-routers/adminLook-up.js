@@ -8,16 +8,13 @@ const debugAdmin = debug('app:admin');
 // CUSTOMER MODULES/MIDDLEWARES
 import User from '../models/user.js';
 import LeaveCredits from '../models/leave-credits.js';
+import validate from '../middleware/validate.js';
 import userCategoryLookupSchema from '../joi-schema-validator/userCategoryLookupSchema.js';
 import leaveCreditSchema from '../joi-schema-validator/leaveCreditSchema.js';
 import validateObjectId from '../middleware/validateObjectId.js';
 
 // GET EMPLOYEE DOCUMENTS
-router.get('/user-docs', async (req, res) => {
-    // x the new input from the request body
-    const { error } = userCategoryLookupSchema.validate(req.body, { abortEarly: false });
-    if (error) return res.status(400).send(error.details[0].message);
-
+router.get('/user-docs', validate(userCategoryLookupSchema), async (req, res) => {
     // Searches every key pairs to ensure documents are retrieved
     const queries = [];
     for (let keys in req.body) {

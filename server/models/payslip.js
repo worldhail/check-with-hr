@@ -92,7 +92,30 @@ const payslipSchema = new mongoose.Schema({
 });
 
 payslipSchema.pre('save', async function(next){
+<<<<<<< HEAD
     generatePayslipPeriod(this);
+||||||| parent of 6bbf865 (Refactoring adminloo-up by adding validation middleware)
+    const [ firstCutOff_payoutDay, secondCutOff_payoutDay ] = [ 20, 5];
+    const { payoutDate, startDate, endDate } = generatePayslipPeriod();
+    
+    this['Employee']['Paid Out'] = payoutDate;
+    this['Employee']['Pay Period'] = `${startDate} to ${endDate}`;
+
+    // to make an instance for the employee name and its pay date details
+    await this.populate('Employee.user');
+    const user = this['Employee'].user;
+    this['Employee'].name = `${user.firstName} ${user.middleName} ${user.lastName}`;
+=======
+    const { payoutDate, startDate, endDate } = generatePayslipPeriod();
+    
+    this['Employee']['Paid Out'] = payoutDate;
+    this['Employee']['Pay Period'] = `${startDate} to ${endDate}`;
+
+    // to make an instance for the employee name and its pay date details
+    await this.populate('Employee.user');
+    const user = this['Employee'].user;
+    this['Employee'].name = `${user.firstName} ${user.middleName} ${user.lastName}`;
+>>>>>>> 6bbf865 (Refactoring adminloo-up by adding validation middleware)
     next();
 });
 
