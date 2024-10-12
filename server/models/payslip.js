@@ -91,12 +91,7 @@ const payslipSchema = new mongoose.Schema({
     'date': { type: Date, default: Date.now }
 });
 
-payslipSchema.pre('save', async function(next){
-<<<<<<< HEAD
-<<<<<<< HEAD
-    generatePayslipPeriod(this);
-||||||| parent of 6bbf865 (Refactoring adminloo-up by adding validation middleware)
-    const [ firstCutOff_payoutDay, secondCutOff_payoutDay ] = [ 20, 5];
+payslipSchema.pre('save', async function(next) {
     const { payoutDate, startDate, endDate } = generatePayslipPeriod();
     
     this['Employee']['Paid Out'] = payoutDate;
@@ -106,31 +101,7 @@ payslipSchema.pre('save', async function(next){
     await this.populate('Employee.user');
     const user = this['Employee'].user;
     this['Employee'].name = `${user.firstName} ${user.middleName} ${user.lastName}`;
-=======
-    const { payoutDate, startDate, endDate } = generatePayslipPeriod();
-    
-    this['Employee']['Paid Out'] = payoutDate;
-    this['Employee']['Pay Period'] = `${startDate} to ${endDate}`;
 
-    // to make an instance for the employee name and its pay date details
-    await this.populate('Employee.user');
-    const user = this['Employee'].user;
-    this['Employee'].name = `${user.firstName} ${user.middleName} ${user.lastName}`;
->>>>>>> 6bbf865 (Refactoring adminloo-up by adding validation middleware)
-||||||| parent of fd3c83f (Additional commit from previous refactor)
-    generatePayslipPeriod(this);
-=======
-    const [ firstCutOff_payoutDay, secondCutOff_payoutDay ] = [ 20, 5];
-    const { payoutDate, startDate, endDate } = generatePayslipPeriod();
-    
-    this['Employee']['Paid Out'] = payoutDate;
-    this['Employee']['Pay Period'] = `${startDate} to ${endDate}`;
-
-    // to make an instance for the employee name and its pay date details
-    await this.populate('Employee.user');
-    const user = this['Employee'].user;
-    this['Employee'].name = `${user.firstName} ${user.middleName} ${user.lastName}`;
->>>>>>> fd3c83f (Additional commit from previous refactor)
     next();
 });
 
