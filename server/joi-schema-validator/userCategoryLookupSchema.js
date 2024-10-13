@@ -2,12 +2,13 @@
 import Joi from 'joi';
 
 // USER CATEGORY SCHEMA
+const stringFormat = () => Joi.string().max(55).empty('');
 export default Joi.object({
-    employeeID: Joi.string().alphanum().max(55).allow(''),
-    firstName: Joi.string().max(55).allow('').insensitive(),
-    middleName: Joi.string().max(55).allow(''),
-    lastName: Joi.string().max(55).allow(''),
-    department: Joi.string().max(55).allow(''),
-    hireDate: Joi.date().iso().allow(''),
-    employmentStatus: Joi.string().min(5).max(55).allow(''),
+    employeeID: Joi.string().alphanum().max(5).empty(''),
+    firstName: stringFormat(),
+    middleName: stringFormat(),
+    lastName: stringFormat(),
+    department: stringFormat(),
+    hireDate: Joi.date().iso().allow('').empty(''),
+    employmentStatus: stringFormat().min(5)
 });
