@@ -6,32 +6,16 @@ import debug from 'debug';
 const debugAdmin = debug('app:admin');
 
 // CUSTOMER MODULES/MIDDLEWARES
-import User from '../models/user.js';
 import LeaveCredits from '../models/leave-credits.js';
 import validate from '../middleware/validate.js';
 import userCategoryLookupSchema from '../joi-schema-validator/userCategoryLookupSchema.js';
 import leaveCreditSchema from '../joi-schema-validator/leaveCreditSchema.js';
 import validateObjectId from '../middleware/validateObjectId.js';
+import collate from '../services/collate.js';
 
 // GET EMPLOYEE DOCUMENTS
 router.get('/user-docs', validate(userCategoryLookupSchema), async (req, res) => {
-    // Searches every key pairs to ensure documents are retrieved
-    const queries = [];
-    for (let keys in req.body) {
-        if (req.body[keys] === '') return res.status(400).send('Remove or add search to all empty categories');
-
-        queries.push(User.find({ [keys]: req.body[keys] })
-            .select('employeeID firstName middleName lastName department hireDate employmentStatus')
-            .collation({ locale: 'en', strength: 2 }));
-    };
-
-    if (queries.length === 0) return res.status(400).send('No search parameters setup');
-
-    // making sure every key pair document results must not be duplicated
-    const result = (await Promise.all(queries)).flat();
-    const documents = Array.from(new Set(result.map(obj => obj._id.toString())))
-        .map(id => result.find(obj => obj._id.toString() === id));
-    
+    const documents = await collate(req.body);
     res.send(documents);
 });
 
