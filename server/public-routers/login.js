@@ -32,7 +32,7 @@ router.post('/user', async (req, res) => {
     });
 
     // const to_roleHomePage = user.role === 'admin' ? '/api/admin/profile' : '/api/user/profile';
-    debugUser('Login successfully to', user.role);
+    debugUser('...Logging in to ', user.role);
     res.redirect('/api/account-routes/profile');
 });
 
