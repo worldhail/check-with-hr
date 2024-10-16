@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import numberOfMonths from '../services/numberOfMonths.js';
 
 const leaveCreditSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -8,12 +9,13 @@ const leaveCreditSchema = new mongoose.Schema({
     total: Number
 });
 
-leaveCreditSchema.pre('save', function (next) {
-    const timeDifference = new Date() - this.regularizationDate;
-    const days = Math.floor(timeDifference / (24 * 60 * 60 * 1000));
-    const months = Math.floor(days / 30);
-    this.total = months;
-    this.available = this.total - this.used;
+leaveCreditSchema.pre('findOneAndReplace', function (next) {
+    const newData = this.getUpdate();
+    newData.used ??= 0;
+
+    const months = numberOfMonths(newData);
+    newData.total = months;
+    newData.available = newData.total - newData.used;
     next();
 });
 

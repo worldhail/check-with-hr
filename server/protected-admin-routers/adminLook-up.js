@@ -12,25 +12,22 @@ import userCategoryLookupSchema from '../joi-schema-validator/userCategoryLookup
 import leaveCreditSchema from '../joi-schema-validator/leaveCreditSchema.js';
 import validateObjectId from '../middleware/validateObjectId.js';
 import collate from '../services/collate.js';
+import setLeaveCredits from '../services/setLeaveCredits.js';
 
 // GET EMPLOYEE DOCUMENTS
 router.get('/user-docs', validate(userCategoryLookupSchema), async (req, res) => {
     const documents = await collate(req.body);
+    debugAdmin('Matching documents returned');
     res.send(documents);
 });
 
-router.post('/user-doc/credits/set/:id', validateObjectId(), async (req, res) => {
+router.post('/user-doc/credits/set/:id', validateObjectId(), validate(leaveCreditSchema), async (req, res) => {
     const id = req.params.id;
-    const { error } = leaveCreditSchema.validate(req.body, { abortEarly: false });
-    if (error) return res.status(400).send(error.details[0].message);
+    
+    const userCredits = await setLeaveCredits(id, req.body);
 
-    const { regularizationDate, used } = req.body;
-    const leaveCredits = new LeaveCredits({ user: id, regularizationDate, used });
-    const userCredits = await LeaveCredits.findOne({ user: id });
-    if (userCredits) await LeaveCredits.deleteOne({ user: id });
-    await leaveCredits.save();
     debugAdmin('New leave credits setup');
-    res.status(201).send(leaveCredits);
+    res.status(201).send(userCredits);
 });
 
 router.patch('/user-doc/credits/update/:id', validateObjectId(), async (req, res) => {
