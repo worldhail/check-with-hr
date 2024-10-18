@@ -1,7 +1,6 @@
 // NPM PACKAGES
 import express from 'express';
 const router = express.Router();
-import Joi from 'joi';
 import debug from 'debug';
 const debugAdmin = debug('app:admin');
 
