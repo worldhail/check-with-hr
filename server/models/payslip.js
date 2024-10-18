@@ -98,10 +98,14 @@ payslipSchema.pre('save', async function(next) {
     this['Employee']['Pay Period'] = `${startDate} to ${endDate}`;
 
     // to make an instance for the employee name and its pay date details
-    await this.populate('Employee.user');
+    await this.populate({
+        path: 'Employee.user',
+        select: 'firstName middleName lastName'   
+    });
+    
     const user = this['Employee'].user;
     this['Employee'].name = `${user.firstName} ${user.middleName} ${user.lastName}`;
-
+    this['Employee'].user = user._id;
     next();
 });
 

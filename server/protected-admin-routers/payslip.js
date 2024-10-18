@@ -14,17 +14,18 @@ import makeDottedKeyPairs from '../utils/makeDottedKeyPairs.js';
 import getTotal from '../utils/getTotal.js';
 import getHoursRate from '../utils/getHoursRate.js';
 import validateObjectId from '../middleware/validateObjectId.js';
+import getPayslip from '../services/getPayslip.js';
+import createPayslipTemplate from '../services/createPayslipTemplate.js';
 
 // ROUTERS
 // CREATING A PAYLISP TEMPLATE
 router.post('/payslip-template/:id', validateObjectId(), async (req, res) => {
     const id = req.params.id;
-    const savedPayslip = await Payslip.findOne({ 'Employee.user': id });
-    if (savedPayslip) return res.send(savedPayslip);
+    const retrievePayslip = await getPayslip(id);
 
-    const payslip = new Payslip({ 'Employee.user': id });
-    await payslip.save()
-    res.status(201).send(payslip);
+    const payslip = retrievePayslip ?? await createPayslipTemplate(id);
+
+    res.status(retrievePayslip ? 200 : 201).send(payslip);
 });
 
 // EDITTING PAYSLIP TEMPLATE FOR EARNINGS CATEGORY
