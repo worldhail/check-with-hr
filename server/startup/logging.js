@@ -2,6 +2,7 @@ import winston from 'winston';
 import 'winston-mongodb';
 import 'winston-daily-rotate-file';
 import 'express-async-errors';
+import debug from 'debug';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -87,11 +88,13 @@ const logger = winston.createLogger({
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
+    debug('Unhandled Rejection at:', promise, 'reason:', reason)
     logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
+    debug('There was an uncaught error', error)
     logger.error('Uncaught Exception thrown:', error);
     process.exit(1);
 });

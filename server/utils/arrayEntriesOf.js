@@ -1,0 +1,1 @@
+export default (obj, prop) => Object.entries(obj[prop]);

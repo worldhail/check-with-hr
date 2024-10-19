@@ -6,7 +6,7 @@ export default Joi.object({
     'Hourly Breakdown': Joi.object({
         'breakdown': Joi.array().items(Joi.object({
             'Hour Type': Joi.string(),
-            'Hours': Joi.number().default(0),
+            'Hours': Joi.number(),
             // 'Earnings': Joi.number().default(0)
         }))
     })
