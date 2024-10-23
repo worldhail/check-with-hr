@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 
 // CUSTOMER MODULES/MIDDLEWARES
 import getTenurity from '../utils/getTenurity.js';
+import makeSessionDataWith from '../services/makeSessionDataWith.js'
 
 // USER SCHEMA - FORMAT OF THE USER INPUT
 const userSchema = new mongoose.Schema({
@@ -47,6 +48,26 @@ userSchema.methods.getVerificationToken = function (newEmail) {
 userSchema.pre('save', function (next) {
     const { years, months } = getTenurity(this.hireDate);
     this.tenurity = { years, months };
+    next();
+});
+
+userSchema.pre('updateOne', function (next) {
+    const options = this.options;
+    let req, token;
+    
+    if (options.hasOwnProperty('req') && options.hasOwnProperty('token')) {
+        req = options.req;
+        token = options.token;
+
+        // store user email and which endpoint it's coming from
+        req.session.newUser = makeSessionDataWith(req, token);
+    };
+
+    if (options.hasOwnProperty('from')) {
+        const newData = this.getUpdate();
+        const date = new Date(newData.$set.hireDate);
+        newData.$set.tenurity = getTenurity(date);
+    }
     next();
 });
 
