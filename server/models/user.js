@@ -46,6 +46,7 @@ userSchema.methods.getVerificationToken = function (newEmail) {
 
 // BEFORE SAVING THE USER INFO, TENURITY WILL BE CALCULATED AND STORED AS AN OBJECT
 userSchema.pre('save', function (next) {
+    if (this.isVerified) return next();
     const { years, months } = getTenurity(this.hireDate);
     const token = this.getVerificationToken(this.email);
 
