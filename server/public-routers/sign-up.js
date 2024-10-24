@@ -1,7 +1,6 @@
 // NPM PACKAGES
 import express from 'express';
 const router = express.Router();
-import bcrypt from 'bcrypt';
 import debug from 'debug';
 const debugUser = debug('app:user');
 const debugError = debug('app:error');
@@ -9,47 +8,35 @@ const debugError = debug('app:error');
 // CUSTOM MODULES/MIDDLEWARES
 import User from '../models/user.js';
 import userInstanceSchema from '../joi-schema-validator/userInstanceSchema.js';
+import getUser from '../services/getUser.js';
+import hashPassword from '../services/hashPassword.js';
+import makeSessionDataWith from '../services/makeSessionDataWith.js';
+import validate from '../middleware/validate.js';
 
 // POST - USER SIGN-UP
-router.post('/user', async (req, res, next) => {
+export default router.post('/user', async (req, res, next) => {
     // if user not exists, create a new user
     try {
-        const userExist = await User.findOne({
+        const isUserExist = await getUser({
             $or: [
                 { email: req.body.email }, 
                 { employeeID: req.body.employeeID }
             ]});
 
-        if (userExist) {
-            if (userExist.email === req.body.email) return res.status(400).send(`Email is already registered.`);
-            if (userExist.employeeID === req.body.employeeID) return res.status(400).send(`EmployeeID is already registered.`);
+        if (isUserExist) {
+            if (isUserExist.email === req.body.email) return res.status(400).send(`Email is already registered.`);
+            if (isUserExist.employeeID === req.body.employeeID) return res.status(400).send(`EmployeeID is already registered.`);
         }
 
         // validate required user input
-        const { error } = userInstanceSchema.validate(req.body, { abortEarly: false });
-        if (error) {
-            const details = error.details;
-            const message = details.map( err => err.message );
-            return res.status(400).send(message);
-        }
+        validate(userInstanceSchema);
 
         // hash password, and save user information to the datebase
         let user = new User(req.body);
-        const salt = await bcrypt.genSalt(parseInt(process.env.SALT_ROUNDS, 10));
-        user.password = await bcrypt.hash(user.password, salt);
-        const token = user.getVerificationToken(req.body.email);
-        user.verificationToken = token;
+        user.password = await hashPassword(user.password);
         user = await user.save();
-       
-        // store user email and which endpoint it's coming from
-        const newUser = {
-            email: req.body.email,
-            fromMethod: req.method,
-            fromUrl: req.originalUrl,
-            verificationToken: token
-        };
 
-        req.session.newUser = newUser;
+        req.session.newUser = makeSessionDataWith(req, user.verificationToken);;
         debugUser('User successfully registered');
         debugUser('Sending email verification...')
         res.redirect('/api/new/email-send');
@@ -64,5 +51,3 @@ router.post('/user', async (req, res, next) => {
         next(error);
     }
 });
-
-export default router;

@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
     firstName: { type: String, trim: true, required: true },
     middleName: { type: String, trim: true, required: true },
     lastName: { type: String, trim: true, required: true },
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true, lowercase: true },
     password: { type: String, required: true },
     department: { type: String, trim: true, required: true },
     position: { type: String, trim: true, required: true },
@@ -47,7 +47,10 @@ userSchema.methods.getVerificationToken = function (newEmail) {
 // BEFORE SAVING THE USER INFO, TENURITY WILL BE CALCULATED AND STORED AS AN OBJECT
 userSchema.pre('save', function (next) {
     const { years, months } = getTenurity(this.hireDate);
+    const token = this.getVerificationToken(this.email);
+
     this.tenurity = { years, months };
+    this.verificationToken = token;
     next();
 });
 

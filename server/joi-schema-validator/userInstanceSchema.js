@@ -7,7 +7,7 @@ export default Joi.object({
     firstName: Joi.string().min(2).max(55).required(),
     middleName: Joi.string().min(2).max(55).required(),
     lastName: Joi.string().min(2).max(55).required(),
-    email: Joi.string().min(5).max(55).required().email(),
+    email: Joi.string().min(5).max(55).required().email().insensitive(),
     password: Joi.string().min(8).max(255).alphanum().required(),
     department: Joi.string().min(5).max(55).required(),
     position: Joi.string().min(2).max(55).required(),
