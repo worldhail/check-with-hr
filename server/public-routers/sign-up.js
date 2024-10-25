@@ -3,7 +3,6 @@ import express from 'express';
 const router = express.Router();
 import debug from 'debug';
 const debugUser = debug('app:user');
-const debugError = debug('app:error');
 
 // CUSTOM MODULES/MIDDLEWARES
 import User from '../models/user.js';
@@ -12,6 +11,7 @@ import getUser from '../services/getUser.js';
 import hashPassword from '../services/hashPassword.js';
 import makeSessionDataWith from '../services/makeSessionDataWith.js';
 import validate from '../middleware/validate.js';
+import activeSession from '../utils/activeSession.js';
 
 // POST - USER SIGN-UP
 export default router.post('/user', async (req, res, next) => {
@@ -39,15 +39,9 @@ export default router.post('/user', async (req, res, next) => {
         req.session.newUser = makeSessionDataWith(req, user.verificationToken);;
         debugUser('User successfully registered');
         debugUser('Sending email verification...')
-        res.redirect('/api/new/email-send');
-        // res.status(201).send(_pick(user, [...userKeys, '_id']));
+        res.status(201).redirect('/api/new/email-send');
     } catch (error) {
-        req.session.destroy(err => {
-            if (err) {
-                debugError('Error destroying session:', err);
-                return res.status(500).send('Error during sign-up');  // Handle any errors
-            }
-        });
+        req.session.destroy(err => activeSession(err, 'Error during sign-up'));
         next(error);
     }
 });

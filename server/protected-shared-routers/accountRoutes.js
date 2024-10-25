@@ -3,7 +3,6 @@ import express from 'express';
 const router = express.Router();
 import debug from 'debug';
 const debugUser = debug('app:user');
-const debugError = debug('app:error');
 
 // CUSTOMER MODULES/MIDDLEWARES
 import User from '../models/user.js';
@@ -16,6 +15,7 @@ import emailSchema from '../joi-schema-validator/emailSchema.js';
 import passwordSchema from '../joi-schema-validator/passwordSchema.js';
 import comparePassword from '../services/comparePassword.js';
 import hashPassword from '../services/hashPassword.js';
+import activeSession from '../utils/activeSession.js';
 
 //GET - USERS INFORMATION
 router.get('/profile', async (req, res) => {
@@ -106,12 +106,7 @@ router.put('/personal-info', validate(profileSchema), async (req, res) => {
 // POST - LOGOUT
 router.post('/logout', async (req, res) => {
     res.clearCookie('x-auth-token');
-    req.session.destroy(err => {
-        if (err) {
-            debugError('Error destroying session:', err);
-            return res.status(500).send('Error during logout');  // Handle any errors
-        }
-    });
+    req.session.destroy(err => activeSession(err, 'Error during logout'));
     debugUser('Logout successfully');
     res.redirect('/api/login/user');
 });

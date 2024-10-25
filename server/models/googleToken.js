@@ -8,6 +8,12 @@ const tokenSchema = new mongoose.Schema({
     token_type: { type: String, required: true }
 })
 
+tokenSchema.pre('save', function(next) {
+    const expiration = new Date(Date.now() + (this.expires_in * 1000));
+    this.expires_in = expiration;
+    next();
+});
+
 export default mongoose.model('Token', tokenSchema)
 
 // NEED RESOLUTION FOR MULTIPLE REQUEST FROM THE USER
