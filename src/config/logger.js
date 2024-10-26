@@ -2,7 +2,6 @@ import winston from 'winston';
 import 'winston-mongodb';
 import 'winston-daily-rotate-file';
 import 'express-async-errors';
-import debug from 'debug';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -13,10 +12,10 @@ const logger = winston.createLogger({
         winston.format.errors({ stack: true }),
         winston.format.json()
     ),
-    defaultMeta: { service: 'user-service' },
+    // defaultMeta: { service: 'user-service' },
     transports: [
         // logs the error
-        new winston.transports.DailyRotateFile({ // logs the error
+        new winston.transports.DailyRotateFile({ // logs the error and request
             filename: 'logs/app.log',
             datePattern: 'YYYY-MM-DD',
             maxFiles: '15d',
@@ -46,6 +45,17 @@ const logger = winston.createLogger({
             level: 'info',
             zippedArchive: true
         }),
+
+        // logs the uncaughtException to the database on production mode only 
+        ...(isProduction ? [
+                new winston.transports.MongoDB({
+                    level: 'info',
+                    db: process.env.MONGODB_URI,
+                    collection: 'exception_logs',
+                    capped: true,
+                    cappedMax: 500
+                })
+        ]: []),
     ],
 
     // logs only the unhandledRejection here
@@ -57,46 +67,18 @@ const logger = winston.createLogger({
             level: 'info',
             zippedArchive: true
         }),
-    ],
 
-    // logs the uncaughtException to the database on production mode only 
-    ...(isProduction ? {
-        exceptionHandlers: [
-            new winston.transports.MongoDB({
-                level: 'info',
-                db: process.env.MONGODB_URI,
-                collection: 'exception_logs',
-                capped: true,
-                cappedMax: 500
-            })
-        ]
-    } : {}),
-
-    // logs the unhandledRejection to the database on production mode only 
-    ...(isProduction ? {
-        rejectionHandlers: [
-            new winston.transports.MongoDB({
-                level: 'info',
-                db: process.env.MONGODB_URI,
-                collection: 'rejection_logs',
-                capped: true,
-                cappedMax: 500
-            })
-        ]
-    } : {})
-});
-
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
-    debug('Unhandled Rejection at:', promise, 'reason:', reason)
-    logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
-// Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
-    debug('There was an uncaught error', error)
-    logger.error('Uncaught Exception thrown:', error);
-    process.exit(1);
+        // logs the unhandledRejection to the database on production mode only 
+    ...(isProduction ? [
+        new winston.transports.MongoDB({
+            level: 'info',
+            db: process.env.MONGODB_URI,
+            collection: 'rejection_logs',
+            capped: true,
+            cappedMax: 500
+        })
+    ] : [])
+    ]
 });
 
 export default logger;

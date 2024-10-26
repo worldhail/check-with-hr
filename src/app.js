@@ -11,13 +11,14 @@ import helmet from 'helmet';
 import connectToDB from './config/db.js';
 
 // CUSTOM MODULES/MIDDLEWARES
+import morganDebug from './config/morganDebug.js';
+import logInfoWithMorgan from './middleware/logInfoWithMorgan.js';
 import routes from './routes/index.js';
 import error from './middleware/error.js';
 
-// MONGODB
+if (process.env.NODE_ENV === 'development') app.use(morganDebug);
+app.use(logInfoWithMorgan);
 connectToDB();
-
-// MIDDLEWARES
 app.use(helmet());
 app.use(session({
     secret: process.env.JWT_PRIVATE_KEY,
