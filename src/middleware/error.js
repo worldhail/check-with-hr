@@ -1,4 +1,4 @@
-import logger from '../startup/logging.js';
+import logger from '../config/logger.js';
 import debug from 'debug';
 
 export default function (err, req, res, next) {
