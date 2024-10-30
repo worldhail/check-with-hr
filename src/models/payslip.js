@@ -5,25 +5,25 @@ import mongoose from 'mongoose';
 import generatePayslipPeriod from '../utils/generatePayslipPeriod.js';
 
 // ENUM FOR HOURLY TYPE
-const hourType = [
-    'Regular Hours',
-    'Regular Overtime Hours',
-    'Regular Night Shift Hours',
-    'Regular OT NS Hours',
-    'Regular Holiday Hours',
-    'Regular Holiday OT Hours',
-    'Regular Holiday NS Hours',
-    'Regular Holiday OT NS Hours',
-    'Special NWD or RD Hours',
-    'Special NWD or RD OT Hours',
-    'Special NWD or RD NS Hours',
-    'Special NWD or RD OT NS Hours',
-    'Special NWD + RD Hours',
-    'Special NWD + RD OT',
-    'Special NWD + RD NS', 
-    'Special NWD + RD OT NS',
-    'Paid Unworked Hours (Sick / Vac / Credits)'
-];
+// const hourTypess = [
+//     'Regular Hours',
+//     'Regular Overtime Hours',
+//     'Regular Night Shift Hours',
+//     'Regular OT NS Hours',
+//     'Regular Holiday Hours',
+//     'Regular Holiday OT Hours',
+//     'Regular Holiday NS Hours',
+//     'Regular Holiday OT NS Hours',
+//     'Special NWD or RD Hours',
+//     'Special NWD or RD OT Hours',
+//     'Special NWD or RD NS Hours',
+//     'Special NWD or RD OT NS Hours',
+//     'Special NWD + RD Hours',
+//     'Special NWD + RD OT',
+//     'Special NWD + RD NS', 
+//     'Special NWD + RD OT NS',
+//     'Paid Unworked Hours (Sick / Vac / Credits)'
+// ];
 
 // SCHEMA
 const earningsSchema = new mongoose.Schema({
@@ -58,18 +58,13 @@ const allowanceSchema = new mongoose.Schema({
 });
 
 const breakdownSchema = new mongoose.Schema({
-    'Hour Type': { type: String, enum: hourType },
+    'Hour Type': { type: String, /*enum: hourTypess*/ },
     'Hours': { type: Number, default: 0 },
     'Earnings': { type: Number, default: 0 }
 }, { _id: false });
 
 const hourlyBreakdownSchema = new mongoose.Schema({
-    'breakdown': {
-        type: [ breakdownSchema ],
-        default: function () {
-            return hourType.map(types => ({ 'Hour Type': types, 'Hours': 0, 'Earnings': 0 }))
-        }
-    }
+    'breakdown': { type: [ breakdownSchema ] }
 });
 
 const payslipSchema = new mongoose.Schema({
