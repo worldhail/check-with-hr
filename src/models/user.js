@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 
 // CUSTOMER MODULES/MIDDLEWARES
-import getTenurity from '../utils/getTenurity.js';
+import getTenurity from '../services/getTenurity.js'
 import makeSessionDataWith from '../services/makeSessionDataWith.js'
 
 // USER SCHEMA - FORMAT OF THE USER INPUT
