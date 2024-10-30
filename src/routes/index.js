@@ -9,6 +9,7 @@ import authorizeRole from '../middleware/authorizeRole.js';
 import adminLookUpRoutes from './adminLookUpRoutes.js';
 import payslipRoutes from './payslipRoutes.js';
 import accountRoutes from './accountRoutes.js';
+import hourTypesRoutes from './hourTypesRoutes.js';
 import express from "express";
 const router = express.Router();
 
@@ -19,6 +20,7 @@ router.use('/api/login', loginRoutes);
 router.use('/api/user', userLimiter, auth, authorizeRole(['employee']), leaveCreditsRoutes);
 router.use('/api/admin', adminLimiter, auth, authorizeRole(['admin']), adminLookUpRoutes);
 router.use('/api/admin', adminLimiter, auth, authorizeRole(['admin']), payslipRoutes);
+router.use('/api/admin', adminLimiter, auth, authorizeRole(['admin']), hourTypesRoutes);
 router.use('/api/account-routes', userLimiter, auth, authorizeRole(['admin', 'employee']), accountRoutes);
 
 export default router;
