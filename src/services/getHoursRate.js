@@ -1,12 +1,12 @@
+import getHourType from "./getHourType.js";
+
 // CALCULATE BREAKDOWN EARNINGS FOR HOURS ACCUMULATED
-export default function (reqBody, objectName) {
+export default async function (reqBody, objectName) {
     const breakdown = reqBody[objectName]['breakdown'];
     const reqBodyHourType = breakdown.map(item => item['Hour Type']);
-    const earnings = 'Earnings';
-    let hourlyRate = 74.747;
-    let num;
+    const availableHourType = await getHourType();
 
-    // get the index of the object for the hour type for conditional statement below
+    // get the index of the object for the hour type from the input
     const index = (hrType) => breakdown.findIndex(item => item['Hour Type'] === hrType);
     const getHourlyRate = hourType => {
         const hrType = breakdown.filter(type => type['Hour Type'] === hourType);
@@ -14,12 +14,12 @@ export default function (reqBody, objectName) {
     };
 
     // each hour type has different calculations and hourly rates
-    if (reqBodyHourType.includes('Regular Hours')) {
-        num = index('Regular Hours');
-        breakdown[num][earnings] = getHourlyRate('Regular Hours').numberOfHours(hourlyRate);
-    }
-    if (reqBodyHourType.includes('Regular Holiday Hours')) {
-        num = index('Regular Holiday Hours');
-        breakdown[num][earnings] = getHourlyRate('Regular Holiday Hours').numberOfHours(hourlyRate * 2);
+    for (let i = 0; reqBodyHourType.length > i; i++) {
+        const num = index(reqBodyHourType[i]);
+        const hourlyRate = availableHourType.hourTypes
+            .filter(type => type.name === reqBodyHourType[i])[0]
+            .ratePerHour;
+
+        breakdown[num]['Earnings'] = getHourlyRate(reqBodyHourType[i]).numberOfHours(hourlyRate);
     }
 };

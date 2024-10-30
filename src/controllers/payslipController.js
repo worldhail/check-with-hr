@@ -9,10 +9,15 @@ import getHoursRate from '../services/getHoursRate.js';
 import getPayslip from '../services/getPayslip.js';
 import createPayslipTemplate from '../services/createPayslipTemplate.js';
 import updatePayslip from '../services/updatePayslip.js';
+import getHourType from '../services/getHourType.js';
 
 // CREATING A PAYLISP TEMPLATE
 export const payslipTemplate = async (req, res) => {
     const id = req.params.id;
+
+    const hasDocument = await getHourType();
+    if (!hasDocument) return res.status(400).send('Please add an hour type');
+
     const retrievePayslip = await getPayslip(id);
 
     const payslip = retrievePayslip ?? await createPayslipTemplate(id);
@@ -84,7 +89,7 @@ export const updateHourlyBreakdown = async (req, res)=> {
     if (!payslip) return res.status(404).send('Payslip not found for the user');
 
     // calculate the hourly rated from the new hours input and add Earnings object in the req.body
-    getHoursRate(req.body, 'Hourly Breakdown');
+    await getHoursRate(req.body, 'Hourly Breakdown');
 
     // add all the property values of the Hourly Breakdown object
     const sum = getTotal(payslip, 'Hourly Breakdown', req.body);
@@ -93,7 +98,11 @@ export const updateHourlyBreakdown = async (req, res)=> {
     const { newBreakdown, inputArrayFilters } = makeDottedKeyPairs(sum, req.body, 'Hourly Breakdown');
 
     const updateHourlyBreakdown = await updatePayslip(id, newBreakdown, inputArrayFilters);
+    const updateTotals = await updatePayslip(id, {
+            'Totals.Hours': sum.hours, 
+            'Totals.Net Earnings': sum.earnings 
+        });
     debugAdmin('Hourly Breakdown updated ', updateHourlyBreakdown);
-    debugAdmin('Total Hours and Earnings for hours are updated ', updateHourlyBreakdown);
+    debugAdmin('Total Hours and Earnings for hours are updated ', updateTotals);
     res.send(updateHourlyBreakdown);
 };
