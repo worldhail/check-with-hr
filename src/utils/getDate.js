@@ -1,13 +1,17 @@
-export default function getDate(date, now) {
+export default function getDate(billingDates, dateNow) {
     const payDate = [ 20, 5];
+    const firstCutOff_payoutDay = payDate[0];
     const secondCutOff_payoutDay = payDate[1];
-    const endOf_secondCutOff = 0; // to get end of the month
-    let [ year, month ] = [ now.getFullYear(), now.getMonth() ];
+    const [ startOf_secondCutOff, endOf_secondCutOff ] = [ 16, 0 /*zero to get end of the month*/];
+    let [ year, month, today ] = [ dateNow.getFullYear(), dateNow.getMonth(), dateNow.getDate() ];
 
-    if (date === secondCutOff_payoutDay) month--;
-    if (date === endOf_secondCutOff) month++;
+    if (today > firstCutOff_payoutDay) {
+        if (billingDates === secondCutOff_payoutDay || billingDates === endOf_secondCutOff) month++;
+    };
 
-    let result = new Date(year, month, date);
+    if (today <= secondCutOff_payoutDay && billingDates === startOf_secondCutOff) month--
 
-    return payDate.includes(date) ? result.toDateString() : result.toLocaleDateString();
+    let result = new Date(year, month, billingDates);
+
+    return payDate.includes(billingDates) ? result.toDateString() : result.toLocaleDateString();
 };
