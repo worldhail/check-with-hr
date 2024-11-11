@@ -3,7 +3,7 @@ import Joi from 'joi';
 
 // AUTHORIZATION LOGIN SCHEMA
 export default Joi.object({
-    email: Joi.string().required().email(),
+    email: Joi.string().required().email().lowercase(),
     password: Joi.string().min(8).max(255).alphanum().required(),
     role: Joi.string().valid('admin', 'employee').required()
 });

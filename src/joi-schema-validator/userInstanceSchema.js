@@ -3,11 +3,11 @@ import Joi from 'joi';
 
 // JOI SCHEMA VALIDATOR
 export default Joi.object({
-    employeeID: Joi.string().alphanum().min(5).max(55).required(),
+    employeeID: Joi.string().alphanum().min(5).max(55).required().uppercase(),
     firstName: Joi.string().min(2).max(55).required(),
     middleName: Joi.string().min(2).max(55).required(),
     lastName: Joi.string().min(2).max(55).required(),
-    email: Joi.string().min(5).max(55).required().email().insensitive(),
+    email: Joi.string().min(5).max(55).required().email().lowercase(),
     password: Joi.string().min(8).max(255).alphanum().required(),
     department: Joi.string().min(5).max(55).required(),
     position: Joi.string().min(2).max(55).required(),

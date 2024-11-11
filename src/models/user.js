@@ -8,7 +8,7 @@ import makeSessionDataWith from '../services/makeSessionDataWith.js'
 
 // USER SCHEMA - FORMAT OF THE USER INPUT
 const userSchema = new mongoose.Schema({
-    employeeID: { type: String, required: true, unique: true },
+    employeeID: { type: String, required: true, unique: true, uppercase: true },
     firstName: { type: String, trim: true, required: true },
     middleName: { type: String, trim: true, required: true },
     lastName: { type: String, trim: true, required: true },

@@ -3,7 +3,7 @@ import Joi from 'joi';
 
 // VALIDATOR FOR PROFILE INFO MODIFICATION
 export default Joi.object({
-    employeeID: Joi.string().alphanum().min(5).max(55).required(),
+    employeeID: Joi.string().alphanum().min(5).max(55).required().uppercase(),
     firstName: Joi.string().min(2).max(55).required(),
     middleName: Joi.string().min(2).max(55).required(),
     lastName: Joi.string().min(2).max(55).required(),
