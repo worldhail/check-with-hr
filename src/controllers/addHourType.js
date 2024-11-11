@@ -4,22 +4,38 @@ import debug from 'debug';
 const debugAdmin = debug('app:admin');
 
 export default async (req, res) => {
+    const session = await mongoose.startSession();
     const { name, ratePerHour } = req.body.hourTypes;
     let addHourType;
 
-    let hasDocument = await getHourType();
-    if (!hasDocument) {
-        addHourType = new HourType({ hourTypes: { name, ratePerHour } });
-        await addHourType.save();
-        return res.status(201).send(addHourType);
-    };
+    try {
+        session.startTransaction();
 
-    const hourType = hasDocument.hourTypes.map(type => type.name);
-    if (hourType.includes(name)) return res.status(400).send('Hour type already exist.');
+        let hasDocument = await getHourType({}, { session });
+        if (!hasDocument) {
+            addHourType = new HourType({ hourTypes: { name, ratePerHour } });
+            await addHourType.save({ session });
+            await session.commitTransaction();
+            return res.status(201).send(addHourType);
+        };
 
-    addHourType = hasDocument.hourTypes.push({ name, ratePerHour });
-    addHourType = await hasDocument.save();
+        const hourType = hasDocument.hourTypes.map(type => type.name);
+        if (hourType.includes(name)) {
+            await session.abortTransaction();
+            return res.status(400).send('Hour type already exist.');
+        }
 
-    debugAdmin('New hour type is added.');
-    res.send(addHourType);
+        addHourType = hasDocument.hourTypes.push({ name, ratePerHour });
+        addHourType = await hasDocument.save({ session });
+        
+        await session.commitTransaction();
+
+        debugAdmin('New hour type is added.');
+        res.send(addHourType);
+    } catch (err) {
+        await session.abortTransaction();
+        next(err);
+    } finally {
+        session.endSession();
+    }
 };

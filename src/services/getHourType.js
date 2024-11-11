@@ -1,6 +1,8 @@
 import HourType from "../models/hourType.js";
 
-export default (hourTypeName) => {
-    const hourType = hourTypeName ?? null;
-    return HourType.findOne(hourType);
+export default (hourTypeName = {}, options = {}) => {
+    const result = HourType.findOne(hourTypeName);
+
+    if (options.session) result.session(options.session);
+    return result;
 };
