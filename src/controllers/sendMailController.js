@@ -9,16 +9,15 @@ import Token from '../models/googleToken.js';
 import sendEmailVerification from '../services/sendEmailVerification.js';
 import activeSession from '../utils/activeSession.js';
 import createOAuth2Client from '../services/oAuth2Client.js'
-const oAuth2Client = createOAuth2Client();
 
 // GLOBAL VARIABLES
 let { newUser } = {}; // store user email and which endpoint it's coming from
 
 // GRANT ACCESSS TO OAUTH2 CLIENT
 export const googleAuth = (req, res) => {
+    const oAuth2Client = createOAuth2Client();
     const authUrl = oAuth2Client.generateAuthUrl({
         access_type: 'offline',
-        // scope: ['https://www.googleapis.com/auth/gmail.send'],
         scope: ['https://mail.google.com/'],
         prompt: 'consent'
     });
@@ -40,25 +39,26 @@ export const oauth2Callback = async (req, res, next) => {
             grant_type: 'authorization_code',
         });
 
-        // sett oAuth2Client credentials | save tokens to the DB | send email verification
+        // set oAuth2Client credentials | save tokens to the DB | send email verification
         const token = response.data;
         debugMail('New token obtained');
 
         const obtainedToken = new Token(token);
-        // obtainedToken.expires_in = new Date(Date.now() + (token.expires_in * 1000));
+        obtainedToken.expires_in = new Date(Date.now() + (token.expires_in * 1000));
         await obtainedToken.save();
         debugMail('Stored new token');
 
+        const oAuth2Client = createOAuth2Client();
         oAuth2Client.setCredentials(token);
         debugMail('Setting credentials with oAuth');
 
         await sendEmailVerification(newUser, token);
-        req.session.destroy(activeSession('Error during oAuthCallback'));
+        req.session.destroy(err => activeSession(err, 'Error during oAuthCallback'));
         debugMail('Session removed');
 
         res.send('Awesome! Please check your email and verify to complete your account.');
     } catch (error) {
-        req.session.destroy(activeSession('Error during oAuthCallback'));
+        req.session.destroy(err => activeSession(err, 'Error during oAuthCallback'));
         debugError('Session removed \nFrom redirect URI')
         next(error);
     }
@@ -75,6 +75,7 @@ export const sendEmail = async (req, res) => {
         let message = 'Awesome! Please check your email and verify to complete your account.';
         // if token found on DB, send email verification
         debugMail('Setting credentials with oAuth');
+        const oAuth2Client = createOAuth2Client();
         oAuth2Client.setCredentials(hasToken);
 
         // if sendEmailVerification has an error,
