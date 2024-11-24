@@ -42,8 +42,7 @@ export default async (req, res, next) => {
 
         debugUser('User successfully registered');
         debugUser('Sending email verification...')
-        // res.status(201).redirect('/api/new/email-send');
-        res.status(201).send('OK');
+        res.redirect('/api/new/email-send');
     } catch (error) {
         req.session.destroy(err => activeSession(err, 'Error during sign-up'));
         await session.abortTransaction();
