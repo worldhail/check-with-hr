@@ -12,7 +12,7 @@ export default async function (newUser, savedToken) {
     try {
         // if there's refresh token saved, check if it's expired
         let token = savedToken.access_token;
-        const isAccessTokenExpired = Date.now() >= savedToken.expires_in.getTime();
+        const isAccessTokenExpired = Date.now() >= savedToken.expires_in;
 
         if (isAccessTokenExpired) {
             debugMail('Access token expired. Getting new token')
