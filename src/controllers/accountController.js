@@ -24,11 +24,11 @@ export const profile = async (req, res) => {
 };
 
 //PUT - CHANGE EMAIL ADDRESS
-export const updateEmail = async (req, res) => {
+export const updateEmail = async (req, res, next) => {
     const session = await mongoose.startSession();
-    
+
     try {
-        let authorizedUser = await getUser({ _id: req.user._id });
+        const authorizedUser = await getUser({ _id: req.user._id });
         if (!authorizedUser) {
             res.clearCookie('x-auth-token');
             return res.status(404).send('User not found');
@@ -79,7 +79,7 @@ export const verifyPassword = async (req, res) => {
 };
 
 // PUT - CHANGE PASSWORD
-export const updatePassword = async (req, res) => {
+export const updatePassword = async (req, res, next) => {
     const session = await mongoose.startSession();
     
     try {
@@ -112,7 +112,7 @@ export const updatePassword = async (req, res) => {
 };
 
 // MODIFICATIONS - UPDATE OTHER INFO
-export const updatePersonalInformation = async (req, res) => {
+export const updatePersonalInformation = async (req, res, next) => {
     const session = await mongoose.startSession();
     
     try {
@@ -132,7 +132,7 @@ export const updatePersonalInformation = async (req, res) => {
 
         const updateInfo = await updateUser({ _id: req.user._id }, req.body, { from: 'personal_info', session});
         
-        await session.comitTransaction();
+        await session.commitTransaction();
 
         debugUser('Personal information updated ', updateInfo);
         res.redirect('/api/account-routes/profile');
@@ -153,22 +153,22 @@ export const logoutAccount = async (req, res) => {
 };
 
 // DELETE - USER ACCOUNT
-export const deleteAccount = async (req, res) => {
+export const deleteAccount = async (req, res, next) => {
     const session = await mongoose.startSession();
 
     try {
         const authorizedUser = await getUser({ _id: req.user._id });
         if (!authorizedUser) return res.status(400).send('User not found');
         
-        session.startSession();
+        session.startTransaction();
 
         const deleteMyAccount = await User.deleteOne({ _id: req.user._id }, { session });
 
-        await session.comitTransaction();
+        await session.commitTransaction();
 
         res.clearCookie('x-auth-token');
         debugUser('Account successfully deleted', deleteMyAccount);
-        res.send('/api/sign-up');
+        res.redirect('/api/sign-up');
     } catch (err) {
         await session.abortTransaction();
         next(err);
