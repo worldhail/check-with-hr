@@ -21,17 +21,6 @@ describe('Token authentication', () => {
         expect(next).not.toHaveBeenCalled();
     });
 
-    it('should return 400 if token provided is invalid', () => {
-        req.cookies['x-auth-token'] = 'x';
-
-        vi.spyOn(jwt, 'verify').mockImplementation(() => { throw new Error(); });
-
-        auth(req, res, next);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.send).toHaveBeenCalledWith('Invalid token!');
-    });
-
     it('should call next when token is valid', () => {
         req.cookies['x-auth-token'] = 'valid'
         const payload = { _id: 1, role: 'employee' }

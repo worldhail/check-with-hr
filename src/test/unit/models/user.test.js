@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach  } from 'vitest';
 import User from '../../../models/user.js';
 import jwt from 'jsonwebtoken';
-import getTenurity from '../../../utils/getTenurity.js';
+import getTenurity from '../../../services/getTenurity.js';
 
 describe('generateAuthToken', () => {
     let user;
