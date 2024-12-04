@@ -1,9 +1,11 @@
 import HourType from '../models/hourType.js';
 import getHourType from '../services/getHourType.js';
+import mongoose from 'mongoose';
 import debug from 'debug';
 const debugAdmin = debug('app:admin');
 
-export default async (req, res) => {
+
+export default async (req, res, next) => {
     const session = await mongoose.startSession();
     const { name, ratePerHour } = req.body.hourTypes;
     let addHourType;
