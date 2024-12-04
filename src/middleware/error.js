@@ -6,7 +6,7 @@ export default function (err, req, res, next) {
     const isStatusCode_500 = statusCode === 500;
     let message = 'Something went wrong. Please try again later!';
 
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
         let errorType = 'server error';
 
         if (!isStatusCode_500) {
@@ -20,6 +20,6 @@ export default function (err, req, res, next) {
         message = err.message
     } 
 
-    logger.error(err.message);
+    logger.error(err);
     res.status(statusCode).send(message);
 };
