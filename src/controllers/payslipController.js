@@ -10,6 +10,7 @@ import getPayslip from '../services/getPayslip.js';
 import createPayslipTemplate from '../services/createPayslipTemplate.js';
 import updatePayslip from '../services/updatePayslip.js';
 import getHourType from '../services/getHourType.js';
+import HourType from '../models/hourType.js';
 
 // CREATING A PAYLISP TEMPLATE
 export const payslipTemplate = async (req, res) => {
@@ -87,6 +88,15 @@ export const updateHourlyBreakdown = async (req, res)=> {
 
     const payslip = await getPayslip(id, { 'Hourly Breakdown': 1, 'Totals': 1, 'Earnings': 1 });
     if (!payslip) return res.status(404).send('Payslip not found for the user');
+
+    const { hourTypes } = await HourType.findOne({});
+    const existingHourtypes = hourTypes.map(type => type.name);
+    const hourTypeRequest = req.body['Hourly Breakdown'].breakdown.map(type => type['Hour Type']);
+
+    const someHourTypeRequestDoNotExist = hourTypeRequest.filter(item => !existingHourtypes.includes(item));
+    if (someHourTypeRequestDoNotExist.length > 0) {
+        return res.status(400).send(`The below hour type/s does/do not exist.\n\n ${someHourTypeRequestDoNotExist.join('\n')}`);
+    };
 
     // calculate the hourly rated from the new hours input and add Earnings object in the req.body
     await getHoursRate(req.body, 'Hourly Breakdown');
