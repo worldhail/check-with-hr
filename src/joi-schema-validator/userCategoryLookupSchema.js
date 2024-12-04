@@ -4,7 +4,7 @@ import Joi from 'joi';
 // USER CATEGORY SCHEMA
 const stringFormat = () => Joi.string().max(55).empty('');
 export default Joi.object({
-    employeeID: Joi.string().alphanum().max(5).empty(''),
+    employeeID: Joi.string().alphanum().min(5).empty(''),
     firstName: stringFormat(),
     middleName: stringFormat(),
     lastName: stringFormat(),
