@@ -12,6 +12,8 @@ import updateCredits from '../services/updateCredits.js';
 // GET EMPLOYEE DOCUMENTS
 export const userDocuments = async (req, res) => {
     const documents = await collate(req.body);
+    if (documents.length === 0) return res.status(404).send('No results found');
+
     debugAdmin('Matching documents returned');
     res.send(documents);
 };
