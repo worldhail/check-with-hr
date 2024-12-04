@@ -21,5 +21,5 @@ export default async (req, res) => {
     await user.save();
 
     debugUser('Email verified successfully');
-    res.status(201).redirect('/api/login/user');
+    res.redirect('/api/login/user');
 };
